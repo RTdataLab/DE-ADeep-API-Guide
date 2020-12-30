@@ -74,9 +74,9 @@
 
 ### 3.2  서비스 연동 API
 
-- [**REST API**](#rest-api)
+- [**REST API**](#3.2.1-rest-api)
   - 목적 : 디바이스 등록 과정 및 센서 데이터 전달
-- [**MQTT API**](#mqtt-api)
+- [**MQTT API**](#3.2.2-mqtt-api)
   - 목적 : 센서 데이터 전달 및 장비 제어 
 
 </br>
