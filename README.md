@@ -122,11 +122,13 @@
   @enduml
   ```
 
+</br>
+
   #### 3.2.1 REST API
-    | Name | HTTP Method | Request URI | Description |
-    |:--------- | :--------- | :--------- | :--------- |
-    | [**register**](./docs/DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
-    | [**getCurrentTime**](./docs/GetCurrentTime.md) | **GET** | /v1/infos/time | mobideep   서버의 시간 정보를 가져온다. |
+  | Name | HTTP Method | Request URI | Description |
+  |:--------- | :--------- | :--------- | :--------- |
+  | [**register**](./docs/DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
+  | [**getCurrentTime**](./docs/GetCurrentTime.md) | **GET** | /v1/infos/time | mobideep   서버의 시간 정보를 가져온다. |
   
 </br></br>
 
