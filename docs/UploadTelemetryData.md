@@ -1,21 +1,22 @@
-# Airdeep.DeviceEntityGroup Rest API
+# MQTT - Airdeep.UploadTelemetryData 
+# 업데이트 예정
 
 ## 선행 조건
   - 장치 등록 
   - Access Token (deviceCredentialsId) 발급
 
+## **Protocol**
+- MQTT
+
 ## Host Name
-http://mobideep.co.kr:8080
+
 
 ## Telemetry upload Endpoint
-**http://mobideep.co.kr:8080/api/v1/{deviceCredentialsId}/telemetry**
+
 
 ## HTTP Request Headers
 ```
-{
-  "Content-Type": "application/json",
-  "Accept": "*/*"
-}
+ 업데이트 예정
 ```
 
 ## Request Method

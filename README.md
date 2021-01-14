@@ -1,10 +1,10 @@
-# Mobideep System Integration Document
-## 작성 이력
+# AirDeep System Integration Document
 ##  작성 이력
 | 날짜 | 내용 | 작성자 |
 |:--------|:---------|:-------|
-|2020-12-30| 최초 작성     | 유수던</br>이창주 |
-|          |             |      |
+|2020-12-30| - 최초 작성     | 유수던</br>이창주 |
+|2021-01-14| - 다이어그램 수정</br> - Device 등록 Wrapper API 추가</br> - Server URL 변경</br>- Time API 추가   | 유수던</br>이창주 |
+
 </br>
 
 ## 1. 소개
@@ -32,16 +32,8 @@
 ### 2.1 서버 정보
   | 서버 | URL |   설명 |
   |:-----|:----|:-------|
-  |테스트 서버|https://admin.mobideep.co.kr:8080| 테스트 서버의 URL | 
-  |상용 서버| 추후 기술 예정 | 상용 서버의 URL | 
-</br>
-
-### 2.2 속성 설정 정보
-  | 설정키 | 목적 | 공용(서버/장비) | 장비 | 
-  |:-----|:----|:----:|:----:|
-  | uploadFrequency | 데이터 업로드 주기를 설정한다.| O | O |
-  | lastFirmwareVersion | 장비의 현재 펌웨어 버전을 기록한다. | X | O |
-  | lastBootingTime | 마지막 구동 시간을 기록한다. | X | O |
+  |테스트 서버|https://dev-api-airdeep.rtdata.co.kr| 테스트 서버 |
+  |상용 서버| https://api-airdeep.rtdata.co.kr | 상용 서버 | 
 </br>
 
 ****
@@ -49,59 +41,125 @@
 
 ## 3.  서비스 연동
 ### 3.1 서비스 연동 콜 플로우
-1. 다바이스 등록 과정
-   - [**login**](./docs/Login.md) : 발급된 계정으로 JWT Token 을 발급 받아야 한다.
-   - [**deviceEntityGroups**](./docs/DeviceEntityGroup.md) : 디바이스를 등록할 디바이스 그룹정보 조회한다.
-   - [**saveDevice**](./docs/SaveDevice.md) : 서버에 디바이스를 등록한다.
-   - [**saveDeviceSharedAttribute**](./docs/SaveDeviceSharedAttribute.md) : 장비 및 서버 사용하고자 하는 속성 등록을 등록한다.
-   - [**deviceCredentials**](./docs/DeviceCredentials.md) : 등록된 디바이스의 Access Token(deviceCredentialsId) 을 발급받는다. 
+* 시퀀스 다이어그램
+  ```plantuml
+  @startuml
+   participant "AirDeep[AQS]" order 1
+   participant "AirDeep[REST Server]" order 2
+   participant "AirDeep[MQTT Server]" order 3
+   hide footbox
+   group 1. HTTP - 디바이스 등록
+     "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
+     "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( Token, MQTT Host )
+   end
 
-2. 디바이스 설정 정보 등록 및 조회
-   - [**saveDeviceAttributes**](./docs/SaveClientAttributes.md) : 장비의 속성 정보를 서버에 등록한다.
-   - [**getDeviceAttributes**](./docs/DeviceAttributes.md) : 서버에 등록된 장비의 속성 정보를 조회한다.
+   group 2. HTTP - 현재 시간 가져오기
+       "AirDeep[AQS]" -> "AirDeep[REST Server]" : Get Current Time
+       "AirDeep[AQS]" <- "AirDeep[REST Server]" : Response(time)
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Set Time
+   end
 
-3. 센서 데이터 전달
-   - [**uploadTelemetryData**](./docs/UploadTelemetryData.md) : 서버에 센서 데이터를 전달한다.
+   group 3. MQTT - Session Establish, Upload Telemetry Data, RPC
+     group 3.1 MQTT - Session
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     end
+     == MQTT Session Established ==
+     group 3.2 MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     end
 
-4. 하드웨어 제어
-   - 추후 추가 예정이며 연동 프로토콜은 **MQTT** 를 사용한다.
+     group 3.3 MQTT - ATTRIBUTE CHANGED (RPC Command)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     end
+     
+     == MQTT Session Established ==
+   end
+  @enduml
+  ```
 
-5. 시퀀스 다이어그램
+#### [**3.1.2 디바이스 등록**](./docs/DeviceRegister.md)
+   - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
+  
+  </br>
+#### [**3.1.2 현재 시간 가져오기**](./docs/GetCurrentTime.md)
+   - 목적 : 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
+  
+  </br>
+#### [**3.1.3 MQTT Connect**](./docs/MqttConnection.md)
+   - 목적 : [3.1 디바이스 등록] 과정에서의 얻은 MQTT Host 정보를 바탕으로 MQTT Session 을 수립한다.
 
-   <img src="./docs/Device provisioning and data upload sequence diagram (REST Example).png" height="80%" width="80%" alt="System Integration Flow"/>
-</br>
+  </br>
+#### [**3.1.4 Upload Telemetry Data**](./docs/UploadTelemetryData.md)
+   - 목적 : 장비는 MQTT Session 수립 후 Telemetry Data 를 서버에 전달한다.
 
-
+  </br>
+#### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
+   - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
+  
+  </br>
 ### 3.2  서비스 연동 API
+- 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
+- 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
+- 시퀀스 다이어그램
+  ```plantuml
+  @startuml
+   participant "AirDeep[AQS]" order 1
+   participant "AirDeep[REST Server]" order 2
+   hide footbox
+   group 1. HTTP - 디바이스 등록
+     "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
+     "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( token, mqtt host info )
+   end
+   group 2. HTTP - 현재 시간 가져오기
+       "AirDeep[AQS]" -> "AirDeep[REST Server]" : Get Current Time
+       "AirDeep[AQS]" <- "AirDeep[REST Server]" : Response(time)
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Set Time
+   end
+  @enduml
+  ```
 
-- [**REST API**](#3.2.1-rest-api)
-  - 목적 : 디바이스 등록 과정 및 센서 데이터 전달
-- [**MQTT API**](#3.2.2-mqtt-api)
-  - 목적 : 센서 데이터 전달 및 장비 제어 
-
-</br>
-
-### 3.2.1 REST API
-  | Name | HTTP Method | Request URI | Description |
-  |:--------- | :--------- | :--------- | :--------- |
-  | [**login**](./docs/Login.md) | **POST** | /api/auth/login | 디비이스 등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 jwt 토큰을 조회한다. |
-  | [**deviceEntityGroups**](./docs/DeviceEntityGroup.md) | **GET** | /api/entityGroups/DEVICE | 디바이스를 등록할 디바이스 그룹 정보를 조회한다. |
-  | [**saveDevice**](./docs/SaveDevice.md) | **POST** | /api/device | AIRDEEP + MAC ADDRESS 형식으로 디이바스 등록한다. |
-  | [**saveDeviceSharedAttribute**](./docs/SaveDeviceSharedAttribute.md) | **POST** | /api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE | 장비 및 서버에서 수정할수 있는 속성을 등록한다. </br> ___- 필수 속성___ </br> 　uploadFrequency : 데이터 업로드 주기 |
-  | [**deviceCredentials**](./docs/DeviceCredentials.md) | **GET** | /api/device/{deviceId} | 등록된 장비의 Access Token(deviceCredentialsId) 조회</br> ___- 권장 사항___ </br> 　로컬에 저장하여 사용하도록 한다. |
-  | [**saveDeviceAttributes**](./docs/SaveClientAttributes.md) | **POST** | /api/v1/{deviceCredentialsId}/attributes | 장비의 상태를 등록한다. </br> ___- 필수 속성___ </br> 　firmwareFrequency, lastBootingTime |
-  | [**getDeviceAttributes**](./docs/DeviceAttributes.md) | **GET** | /api/v1/{deviceCredentialsId}/attributes | 등록된 장비의 속성정보를 조회한다. |
-  | [**uploadTelemetryData**](./docs/UploadTelemetryData.md) | **POST** | /api/v1/{deviceCredentialsId}/telemetry | 속성정보기준으로 데이터 업로드한다. |
+  #### 3.2.1 REST API
+    | Name | HTTP Method | Request URI | Description |
+    |:--------- | :--------- | :--------- | :--------- |
+    | [**register**](./docs/DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
+    | [**getCurrentTime**](./docs/GetCurrentTime.md) | **GET** | /v1/infos/time | mobideep   서버의 시간 정보를 가져온다. |
+  
 </br></br>
 
 ### 3.2.2 MQTT API
- - MQTT API 를 사용하기 위해서는 반드시 **디바이스 등록과정**이 선행이 되어야 한다.
+ - MQTT API 를 사용하기 위해서는 반드시 **디바이스 등록과정** 이 선행 되어야 한다.
+ - AQS 디바이스는 **디바이스 등록과정** 을 통해 얻어진 MQTT Host 정보로 MQTT Host 와 MQTT Session Establish 되어야 한다.
+ - RPC Command 는 [**공용 ATTRIBUTE**](./docs/DeviceRegister.md) 로 디바이스에 전달된다. 
  - 시퀀스 다이어그램
-
-    <img src="./docs/Device data upload sequence diagram (MQTT Example).png" height="80%" width="80%"/>
+   ```plantuml
+   @startuml
+     participant "AirDeep[AQS]" order 1
+     participant "AirDeep[MQTT Server]" order 2
+     hide footbox
+      group 1. MQTT - Connection
+      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
+      "AirDeep[AQS]" <--> "AirDeep[MQTT Server]"  : Ack
+     end
+     == MQTT Session Established ==
+     group 2. MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish Data - TELEMETRY_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     end
+   
+     group 3. MQTT - ATTRIBUTE CHANGED (RPC Command)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     end
+     == MQTT Session Established ==
+   @enduml
+   ```
 
  - MQTT API 리스트 ___(지원 command는 추후 논의 후 기술 예정)___
-
     | Method | Topic | Description |
     |:------------- |:------------- |:-------------|
     | **Publish to client ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** | client에 대한 속성정보 서버로 전송함 |
@@ -115,7 +173,7 @@
 
 ***
 
-# *Appendix A. Sample 소스*
+# *Appendix A. Sample 소스(업데이트 예정)*
 - [**Python Sample 소스**](#python-sample-소스)
   - [**필요한 lib**](#필요한-lib)
   - [**소스 파일**](#소스-파일)
@@ -149,10 +207,10 @@
     | `mqtt-emul.py` | 디바이스 등록 및 MQTT 연동 후  데이터 전송  |
     | `rest-emul.py` | 디바이스 등록 및 데이터 전송|
 
-## HOST 정보
-```
-MOBIDEEP_HOST = "mobideep.rtdata.co.kr"
-MOBIDEEP_HTTP_HOST = "http://mobideep.rtdata.co.kr:8080"
+## HOST 정보 (**HOST 정보 변경 예정**)
+```json
+MOBIDEEP_HOST = "mqtt-airdeep.rtdata.co.kr"  
+MOBIDEEP_HTTP_HOST = "http://mqtt-airdeep.rtdata.co.kr"
 MQTT_PORT= 1883
 username = ""# Mobideep 에서 제공한 사용자 아이디
 password =""# Mobideep 에서 제공한 사용자 아이디
