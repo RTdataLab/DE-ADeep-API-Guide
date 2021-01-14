@@ -83,24 +83,24 @@
 
 #### [**3.1.2 디바이스 등록**](./docs/DeviceRegister.md)
    - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
-  
   </br>
+
 #### [**3.1.2 현재 시간 가져오기**](./docs/GetCurrentTime.md)
    - 목적 : 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
-  
   </br>
+
 #### [**3.1.3 MQTT Connect**](./docs/MqttConnection.md)
    - 목적 : [3.1 디바이스 등록] 과정에서의 얻은 MQTT Host 정보를 바탕으로 MQTT Session 을 수립한다.
-
   </br>
+
 #### [**3.1.4 Upload Telemetry Data**](./docs/UploadTelemetryData.md)
    - 목적 : 장비는 MQTT Session 수립 후 Telemetry Data 를 서버에 전달한다.
-
   </br>
+
 #### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
    - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
+  </br> </br>
   
-  </br>
 ### 3.2  서비스 연동 API
 - 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
 - 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
