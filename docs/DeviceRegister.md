@@ -124,9 +124,11 @@ print(response.json())
 ```
 
 </br>
+
 ## *Appendix. json contens 도식화*
 
 * Request Contents
+
 ```plantuml
 @startjson
 {
@@ -149,7 +151,9 @@ print(response.json())
 @endjson 
 ```
 
+
 * Response Contents
+
 ```plantuml
 @startjson
 {

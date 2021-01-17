@@ -42,6 +42,7 @@
 ## 3.  서비스 연동
 ### 3.1 서비스 연동 콜 플로우
 * 시퀀스 다이어그램
+
   ```plantuml
   @startuml
    participant "AirDeep[AQS]" order 1
@@ -105,6 +106,7 @@
 - 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
 - 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
 - 시퀀스 다이어그램
+
   ```plantuml
   @startuml
    participant "AirDeep[AQS]" order 1
@@ -137,6 +139,7 @@
  - AQS 디바이스는 **디바이스 등록과정** 을 통해 얻어진 MQTT Host 정보로 MQTT Host 와 MQTT Session Establish 되어야 한다.
  - RPC Command 는 [**공용 ATTRIBUTE**](./docs/DeviceRegister.md) 로 디바이스에 전달된다. 
  - 시퀀스 다이어그램
+ 
    ```plantuml
    @startuml
      participant "AirDeep[AQS]" order 1
