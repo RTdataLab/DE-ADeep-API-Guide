@@ -20,7 +20,6 @@ TELEMETRY_TOPIC ="v1/devices/me/telemetry"
 RPC_REQUEST_TOPIC ="v1/devices/me/rpc/request/+"
 RPC_RESPONSE_TOPIC ="v1/devices/me/rpc/response/"
 
-
 # User Information
 username = ""
 password = ""

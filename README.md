@@ -4,6 +4,7 @@
 |:--------|:---------|:-------|
 |2020-12-30| - 최초 작성     | 유수던</br>이창주 |
 |2021-01-14| - 다이어그램 수정</br> - Device 등록 Wrapper API 추가</br> - Server URL 변경</br>- Time API 추가   | 유수던</br>이창주 |
+|2021-01-27| - 다이어그램 수정</br> - Device 등록 Wrapper API 추가</br> - Server URL 변경</br>- Time API 추가   | 유수던</br>이창주 |
 
 </br>
 
@@ -32,8 +33,8 @@
 ### 2.1 서버 정보
   | 서버 | URL |   설명 |
   |:-----|:----|:-------|
-  |테스트 서버|https://dev-api-airdeep.rtdata.co.kr| 테스트 서버 |
-  |상용 서버| https://api-airdeep.rtdata.co.kr | 상용 서버 | 
+  |테스트 서버|https://dev-api-airdeep.rtdata.co.kr| 개발기 |
+  |상용 서버| https://api-airdeep.rtdata.co.kr | 상용기 | 
 </br>
 
 ****
@@ -45,49 +46,57 @@
 
   ```plantuml
   @startuml
-   participant "AirDeep[AQS]" order 1
-   participant "AirDeep[REST Server]" order 2
-   participant "AirDeep[MQTT Server]" order 3
-   hide footbox
-   group 1. HTTP - 디바이스 등록
-     "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
-     "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( Token, MQTT Host )
-   end
+    participant "AirDeep[AQS]" order 1
+    participant "AirDeep[REST Server]" order 2
+    participant "AirDeep[MQTT Server]" order 3
+    hide footbox
+   
+    group 1. HTTP - 서버 시간 가져오기
+        "AirDeep[AQS]" -> "AirDeep[REST Server]" : Get Current Time
+        "AirDeep[AQS]" <- "AirDeep[REST Server]" : Response(time)
+        "AirDeep[AQS]" <- "AirDeep[AQS]" : Set Time
+    end
+    group 2. HTTP - 디바이스 등록
+      "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
+      "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( Token, MQTT Host )
+    end
+    
+    group 3. MQTT - Session Establish, Upload Telemetry Data, RPC
+      group 3.1 MQTT - Session
+        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
+        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+      end
 
-   group 2. HTTP - 현재 시간 가져오기
-       "AirDeep[AQS]" -> "AirDeep[REST Server]" : Get Current Time
-       "AirDeep[AQS]" <- "AirDeep[REST Server]" : Response(time)
-       "AirDeep[AQS]" <- "AirDeep[AQS]" : Set Time
-   end
+      == MQTT Session Established ==
 
-   group 3. MQTT - Session Establish, Upload Telemetry Data, RPC
-     group 3.1 MQTT - Session
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
-     end
-     == MQTT Session Established ==
-     group 3.2 MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
-     end
-
-     group 3.3 MQTT - ATTRIBUTE CHANGED (RPC Command)
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+     group 3.2 MQTT - 'Command - ATTRIBUTE CHANGED'
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC,RPC_REQUEST_TOPIC
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
        "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
      end
-     
-     == MQTT Session Established ==
-   end
+
+     group 3.3 MQTT - 'Command - RPC'
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC, ATTRIBUTES_REQUEST_TOPIC, RPC_REQUEST_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     end
+
+     group 3.4 MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (publish TELEMETRY_TOPIC )
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     end
+      
+      == MQTT Session Established ==
+    end
   @enduml
   ```
 
-#### [**3.1.2 디바이스 등록**](./docs/DeviceRegister.md)
-   - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
+#### [**3.1.1 현재 시간 가져오기**](./docs/HTTP-API-GetCurrentTime.md)
+   - 목적 : 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
   </br>
 
-#### [**3.1.2 현재 시간 가져오기**](./docs/GetCurrentTime.md)
-   - 목적 : 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
+#### [**3.1.2 디바이스 등록**](./docs/HTTP-API-DeviceRegister.md)
+   - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
   </br>
 
 #### [**3.1.3 MQTT Connect**](./docs/MqttConnection.md)
@@ -101,10 +110,15 @@
 #### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
    - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
   </br> </br>
+
+#### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
+   - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
+  </br> </br>
+
   
 ### 3.2  서비스 연동 API
-- 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
 - 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
+- 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
 - 시퀀스 다이어그램
 
   ```plantuml
@@ -112,25 +126,27 @@
    participant "AirDeep[AQS]" order 1
    participant "AirDeep[REST Server]" order 2
    hide footbox
-   group 1. HTTP - 디바이스 등록
-     "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
-     "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( token, mqtt host info )
-   end
-   group 2. HTTP - 현재 시간 가져오기
+   group 1. HTTP - 현재 시간 가져오기
        "AirDeep[AQS]" -> "AirDeep[REST Server]" : Get Current Time
        "AirDeep[AQS]" <- "AirDeep[REST Server]" : Response(time)
        "AirDeep[AQS]" <- "AirDeep[AQS]" : Set Time
    end
+   group 2. HTTP - 디바이스 등록
+     "AirDeep[AQS]" -> "AirDeep[REST Server]" : Device Register
+     "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( token, mqtt host info )
+   end
+
   @enduml
   ```
 
 </br>
 
-  #### 3.2.1 REST API
+### 3.2.1 REST API
   | Name | HTTP Method | Request URI | Description |
   |:--------- | :--------- | :--------- | :--------- |
-  | [**register**](./docs/DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
-  | [**getCurrentTime**](./docs/GetCurrentTime.md) | **GET** | /v1/infos/time | mobideep   서버의 시간 정보를 가져온다. |
+  | [**getCurrentTime**](./docs/HTTP-API-GetCurrentTime.md)| **GET** | /v1/infos/time |   서버 시간 정보를 가져온다. |
+  | [**register**](./docs/HTTP-API-DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
+
   
 </br></br>
 
@@ -150,35 +166,63 @@
       "AirDeep[AQS]" <--> "AirDeep[MQTT Server]"  : Ack
      end
      == MQTT Session Established ==
-     group 2. MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish Data - TELEMETRY_TOPIC
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
-     end
-   
-     group 3. MQTT - ATTRIBUTE CHANGED (RPC Command)
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+     group 2. MQTT - ATTRIBUTE CHANGED (RPC Command)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC, ATTRIBUTES_REQUEST_TOPIC, RPC_REQUEST_TOPIC
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
        "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     end
+
+     group 3. MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish Data - TELEMETRY_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
      end
      == MQTT Session Established ==
    @enduml
    ```
 
- - MQTT API 리스트 ___(지원 command는 추후 논의 후 기술 예정)___
+</br>
+
+ - MQTT API 리스트 
     | Method | Topic | Description |
     |:------------- |:------------- |:-------------|
     | **Publish to client ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** | client에 대한 속성정보 서버로 전송함 |
-    | **Subscribe to ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** | 변경 된 설정 정보를 조회함 |
+    | **Subscribe to ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** |  변경 된 설정 정보를 수신 받는다 |
     | **Publish to ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** | client에 대한 속성정보 서버로 전송함 |
-    | **Subscribe to ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** |  변경 된 설정 정보를 조회함 |
-    | **Publish to RPC_RESPONSE_TOPIC** | **v1/devices/me/rpc/response/{id}** | rpc 명령어 서버로 전송 |
-    | **Subscribe to RPC_REQUEST_TOPIC** | **v1/devices/me/rpc/request/+** | 서버로부터 들어오는 rpc 명령어 |
-    | **Publish to TELEMETRY_TOPIC** | **v1/devices/me/telemetry** | 서버로 센서 데이터를 전송함 |
+    | **Subscribe to ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** |  변경 된 설정 정보를 수신 받는다. |
+    | **Publish to RPC_RESPONSE_TOPIC** | **v1/devices/me/rpc/response/{id}** | RPC 명령어 서버로 전송 |
+    | **Subscribe to RPC_REQUEST_TOPIC** | **v1/devices/me/rpc/request/+** | 서버로부터 들어오는 RPC 명령어 |
+    | **Publish to TELEMETRY_TOPIC** | **v1/devices/me/telemetry** | 서버로 센서 데이터를 전송 |
 </br></br>
 
 ***
 
-# *Appendix A. Sample 소스(업데이트 예정)*
+# *Appendix A. HTTP STATUS CODE 정의*
+  | HTTP STATUS CODE | 설명 |
+  |:-----------------|:-----|
+  |200(OK)| 정상적으로 처리 |
+  |400(Bad Request)| 파라미터 유효성 검사 중 에러 |
+  |401(Unauthorized)| API 인증 실패 |
+  |403(Forbidden)| API 접근 권한 오류 |
+  |404(Not Found)| 요청 API 가 존재하지 않거나 사용자가 경우 (리소스가 없는 경우) |
+  |500(Internal Server Error)|서버 내부 로직등의 예외적인 에러 |
+  |503(Service Unavailable)|서버 유지보수, 과부하등으로 요청 처리를 할 수 없는 경우|
+  |504(Gateway Timeout)| 요청 후 응답 Timeout 이 발생한 경우|
+  
+  <br>
+
+
+* A1.1 성공 응답 Body
+  ```
+  요청에 대하여 성공인 경우는 HTTP Status code를 200(성공), 응답 Body 값은 각 각의 API 에서 정의된 값으로 반환한다.
+  ```
+
+* 실패 응답 Body
+  ```
+  실패인 경우 HTTP Status Code 값을 4xx, 5xx 반환하며, 응답 Body 값은 각 각의 API 에서 정의된 값으로 반환한다. (응답 Body에 정의된 msgType 값을 통하여 상세 에러내역을 확인할 수 있다)
+  ```
+</br>
+
+# *Appendix B. Sample 소스(업데이트 예정)*
 - [**Python Sample 소스**](#python-sample-소스)
   - [**필요한 lib**](#필요한-lib)
   - [**소스 파일**](#소스-파일)
@@ -209,27 +253,23 @@
     | :--- | :----------- |
     | `login.py` | username & password으로 mobideep 서버에 로그인하는 모듈 |
     | `provisioning.py` | 디바이스 및 telemetry 데이터 관리 API 모듈 |
+    | `simple-mqtt-emul.py` | 2 step 디바이스 등록 및 MQTT 연동 후  데이터 전송  |
     | `mqtt-emul.py` | 디바이스 등록 및 MQTT 연동 후  데이터 전송  |
     | `rest-emul.py` | 디바이스 등록 및 데이터 전송|
 
+</br>
+
 ## HOST 정보 (**HOST 정보 변경 예정**)
 ```json
-MOBIDEEP_HOST = "mqtt-airdeep.rtdata.co.kr"  
-MOBIDEEP_HTTP_HOST = "http://mqtt-airdeep.rtdata.co.kr"
-MQTT_PORT= 1883
-username = ""# Mobideep 에서 제공한 사용자 아이디
-password =""# Mobideep 에서 제공한 사용자 아이디
+AIRDEEP_HTTP_HOST = "https://api-airdeep.rtdata.co.kr"  
+AIRDEEP_MQTT_HOST = "mqtt-airdeep.rtdata.co.kr"
+AIRDEEP_MQTT_PORT= 1883
+username = "Airdeep 에서 제공한 사용자 아이디"
+password ="Airdeep 에서 제공한 사용자 아이디"
 ```
+## Onestep device 등록 및 MQTT Sample 실행 방법
 
-## MQTT Sample 실행 방법
-
 ```
-python mqtt-emul.py 
+python simple-mqtt-emul.py 
 ```
-명령어가 나오는대로 파라미터 입력: username, password, deviceName, entityGroupName
-
-## REST Sample 실행 방법
-```
-python rest-emul.py 
-```
-명령어가 나오는대로 파라미터 입력: username, password, deviceName, entityGroupName
+명령어가 나오는대로 파라미터 입력: username, password, deviceName
