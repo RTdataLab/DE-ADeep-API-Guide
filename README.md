@@ -61,29 +61,35 @@
       "AirDeep[AQS]" <- "AirDeep[REST Server]"  : Response( Token, MQTT Host )
     end
     
-    group 3. MQTT - Session Establish, Upload Telemetry Data, RPC
+    group 3. MQTT - Session Establish, Telemetry Data, Command(Attribute, RPC)
       group 3.1 MQTT - Session
         "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
-        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack(Connected)
       end
 
       == MQTT Session Established ==
 
-     group 3.2 MQTT - 'Command - ATTRIBUTE CHANGED'
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC,RPC_REQUEST_TOPIC
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
-       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     group 3.2 MQTT - 'Command - ATTRIBUTE CHANGED' (Server Side)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device 
      end
 
-     group 3.3 MQTT - 'Command - RPC'
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC, ATTRIBUTES_REQUEST_TOPIC, RPC_REQUEST_TOPIC
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
-       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     group 3.3 MQTT - 'Command - ATTRIBUTE CHANGED' (Client Side)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device 
      end
 
-     group 3.4 MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (publish TELEMETRY_TOPIC )
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     group 3.4 MQTT - 'Command - RPC'
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - RPC_REQUEST_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - RPC Command
+       "AirDeep[AQS]" --> "AirDeep[MQTT Server]" : Publish ACK(Optional)
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device
+     end
+
+     group 3.5 MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
      end
       
       == MQTT Session Established ==
@@ -93,28 +99,38 @@
 
 #### [**3.1.1 현재 시간 가져오기**](./docs/HTTP-API-GetCurrentTime.md)
    - 목적 : 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
+  
   </br>
 
 #### [**3.1.2 디바이스 등록**](./docs/HTTP-API-DeviceRegister.md)
-   - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token 및 MQTT Host 정보를 가져온다.
+   - 목적 : 디바이스는 최초 구동시 디바이스 등록 과정을 하여 Access Token(credentialsId) 및 MQTT Host 정보를 가져온다.
+  
   </br>
 
 #### [**3.1.3 MQTT Connect**](./docs/MqttConnection.md)
    - 목적 : [3.1 디바이스 등록] 과정에서의 얻은 MQTT Host 정보를 바탕으로 MQTT Session 을 수립한다.
+  
   </br>
 
-#### [**3.1.4 Upload Telemetry Data**](./docs/UploadTelemetryData.md)
-   - 목적 : 장비는 MQTT Session 수립 후 Telemetry Data 를 서버에 전달한다.
+#### [**3.1.4 Command - ATTRIBUTE CHANGED(Server Side)**](./docs/MQTT-API-AttributeChangeCommand.md)
+   - 목적 : 서버는 장비와 MQTT Session 수립 후 SHARD-ATTRIBUTE(uploadFrequency) 변경하여 장비 제어를 한다.
+  
   </br>
 
-#### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
-   - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
-  </br> </br>
+#### [**3.1.5 Command - ATTRIBUTE CHANGED(Client Side)**](./docs/MQTT-API-AttributeChangeCommand.md)
+   - 목적 : 장비는 서버와 MQTT Session 수립 후 SHARD-ATTRIBUTE(uploadFrequency) 변경하여 서버에 SHARD-ATTRIBUTE(uploadFrequency) 변경을 전달한다.
+  
+  </br>
 
-#### [**3.1.5 ATTRIBUTE CHANGED (RPC Command)**](./docs/RpcCommand.md)
-   - 목적 : 서버는 MQTT Session 으로 장비 제어 메시지를 전달하여, 장비 제어를 한다. 
-  </br> </br>
+#### [**3.1.6 Command - RPC**](./docs/MQTT-API-RpcCommand.md)
+   - 목적 : 서버는 장비와 MQTT Session 수립 후 RPC Command 를 단말에 전달하여 장비 제어를 한다.
+  
+  </br>
 
+#### [**3.1.7 Upload Telemetry Data**](./docs/MQTT-API-UploadTelemetryData.md)
+   - 목적 : 장비는 서버와 MQTT Session 수립 후 Telemetry Data 를 서버에 전달한다.
+  
+  </br>
   
 ### 3.2  서비스 연동 API
 - 디바이스는 서버 시간 정보를 가져온 후 디바이스에 시간 정보를 셋팅한다.
@@ -144,16 +160,17 @@
 ### 3.2.1 REST API
   | Name | HTTP Method | Request URI | Description |
   |:--------- | :--------- | :--------- | :--------- |
-  | [**getCurrentTime**](./docs/HTTP-API-GetCurrentTime.md)| **GET** | /v1/infos/time |   서버 시간 정보를 가져온다. |
-  | [**register**](./docs/HTTP-API-DeviceRegister.md) | **POST** | /v1/devices/register | 디비이스   등록하기 위해서 mobideep 서버의 customer 계정으로 로그인 하여 access token, mqtt host 를 조회한다. |
+  | [**getCurrentTime**](./docs/HTTP-API-GetCurrentTime.md)| **GET** | /v1/infos/time |   서버의 시간 정보를 가져온다. |
+  | [**register**](./docs/HTTP-API-DeviceRegister.md) | **POST** | /v1/devices/register |  서버에 디바이스 등록을 시도한다.</br> 등록 완료 후 서버의 응답으로 Access Token(credentialsId), MQTT Host 를 수신한다. |
 
   
-</br></br>
+</br>
 
 ### 3.2.2 MQTT API
  - MQTT API 를 사용하기 위해서는 반드시 **디바이스 등록과정** 이 선행 되어야 한다.
  - AQS 디바이스는 **디바이스 등록과정** 을 통해 얻어진 MQTT Host 정보로 MQTT Host 와 MQTT Session Establish 되어야 한다.
- - RPC Command 는 [**공용 ATTRIBUTE**](./docs/DeviceRegister.md) 로 디바이스에 전달된다. 
+ - MQTT Session 수립 후 RPC Command 를 단말에 전달하여 장비 제어를 한다. (Server-Side)
+ - MQTT Session 수립 후 SHARD-ATTRIBUTE(uploadFrequency) 변경하여 장비 제어를 한다. (Server-Side, Client-Side)
  - 시퀀스 다이어그램
  
    ```plantuml
@@ -163,19 +180,32 @@
      hide footbox
       group 1. MQTT - Connection
       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection
-      "AirDeep[AQS]" <--> "AirDeep[MQTT Server]"  : Ack
+      "AirDeep[AQS]" <--> "AirDeep[MQTT Server]"  : Ack(Connected)
      end
      == MQTT Session Established ==
-     group 2. MQTT - ATTRIBUTE CHANGED (RPC Command)
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC, ATTRIBUTES_REQUEST_TOPIC, RPC_REQUEST_TOPIC
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
-       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device Attribute 
+     group 3.2 MQTT - 'Command - ATTRIBUTE CHANGED' (Server Side)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device 
      end
 
-     group 3. MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish Data - TELEMETRY_TOPIC
-       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Ack
+     group 3.3 MQTT - 'Command - ATTRIBUTE CHANGED' (Client Side)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish - ATTRIBUTE_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - CHANGED ATTRIBUTE VALUE
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device 
      end
+
+     group 3.4 MQTT - 'Command - RPC'
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - RPC_REQUEST_TOPIC
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data(OnMessage) - RPC Command
+       "AirDeep[AQS]" --> "AirDeep[MQTT Server]" : Publish ACK(Optional)
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : Update Device
+     end
+
+     group 3.5 MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
+     end
+
      == MQTT Session Established ==
    @enduml
    ```
@@ -185,13 +215,13 @@
  - MQTT API 리스트 
     | Method | Topic | Description |
     |:------------- |:------------- |:-------------|
-    | **Publish to client ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** | client에 대한 속성정보 서버로 전송함 |
-    | **Subscribe to ATTRIBUTES_TOPIC** | **v1/devices/me/attributes** |  변경 된 설정 정보를 수신 받는다 |
+    | **ATTRIBUTES_TOPIC(Client-Side)** | **v1/devices/me/attributes** | client에 대한 속성정보 서버로 전송함 |
+    | **ATTRIBUTES_TOPIC(Server-Side)** | **v1/devices/me/attributes** |  변경 된 설정 정보를 수신 받는다 |
     | **Publish to ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** | client에 대한 속성정보 서버로 전송함 |
     | **Subscribe to ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** |  변경 된 설정 정보를 수신 받는다. |
     | **Publish to RPC_RESPONSE_TOPIC** | **v1/devices/me/rpc/response/{id}** | RPC 명령어 서버로 전송 |
-    | **Subscribe to RPC_REQUEST_TOPIC** | **v1/devices/me/rpc/request/+** | 서버로부터 들어오는 RPC 명령어 |
-    | **Publish to TELEMETRY_TOPIC** | **v1/devices/me/telemetry** | 서버로 센서 데이터를 전송 |
+    | **RPC_REQUEST_TOPIC** | **v1/devices/me/rpc/request/+** | 서버로부터 들어오는 RPC 명령어 |
+    | **TELEMETRY_TOPIC** | **v1/devices/me/telemetry** | 서버로 센서 데이터를 전송 |
 </br></br>
 
 ***
