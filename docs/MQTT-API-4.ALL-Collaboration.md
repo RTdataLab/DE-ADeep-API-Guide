@@ -88,7 +88,7 @@ sensor_data = {
 
 ## **mqtt connect**
 - **Python mqtt connection example**
-  ```
+  ```python
     from __future__ import division
     import paho.mqtt.client as mqtt
     import random
@@ -139,7 +139,7 @@ ATTRIBUTES_TOPIC = "v1/devices/me/attributes"
 ATTRIBUTES_REQUEST_TOPIC = "v1/devices/me/attributes/request/1"
 ```
 ## **Python mqtt on_connect example**
-```
+```python
 import requests
 import json
 from datetime import datetime
@@ -193,7 +193,7 @@ msg.topic 및 msg.payload의 method 및 params 값에 따라서 디바이스에�
    Aircondition report | **v1/devices/me/rpc/request/${id}** | **str**| **b'{"method":"getTelemetry","params":"{}"}'** | 
 
 ## **Python mqtt on_message example**
-```
+```python
 import requests
 import json
 from datetime import datetime
