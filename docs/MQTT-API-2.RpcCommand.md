@@ -1,7 +1,7 @@
 # MQTT API - Airdeep.RPC Command
 
 ## **설명**
-  - 서버의 제어 명령어를 단말이 처리하고, 처리 결과를 서버에 전달한다.
+  - 서버의 제어 명령어를 디바이스이 처리하고, 처리 결과를 서버에 전달한다.
 
 ## **선행 조건**
   - 장치 등록 
@@ -25,6 +25,7 @@ NO | TOPIC    | Publish | Subscribe | Description
 :------: | :------ | :---------: | :----------: | :----------
 1  | v1/devices/me/rpc/request/+  | X | O | **Subscribe** </br> 서버로부터 제어 명령어를 받아 처리한다.
 2 | v1/devices/me/telemetry | O | X | **Publish** </br> 제어 결과를 전달한다.
+3 | v1/devices/me/rpc/response | O | X | **Publish** </br> 제어 결과를 전달한다.
 
 </br>
 
@@ -38,13 +39,11 @@ NO | TOPIC    | Send(Publish) | Recv(on_message) | Response
 5 | v1/devices/me/rpc/request/+ | X | {"method":"notify","params":"{1}"} | {"notify": params}
 6 | v1/devices/me/rpc/request/+ | X | {"method":"turnBT","params":true} | {"turnBlutooth": params}
 7 | v1/devices/me/rpc/request/+ | X | {"method":"checkUpdate","params":"{}"} | {"checkUpdate": :}
-8 | v1/devices/me/rpc/request/+ | X | {"method":"getTelemetry","params":"{}"} | "getTelemetry": { 'temperature': 0, 'temperature_max': 0,'temperature_unit':'C',  'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3",  'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3",  'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'report_reason': 'Report Reason' }}
+8 | v1/devices/me/rpc/request/+ | X | {"method":"getTelemetry","params":"{}"} | {"getTelemetry": { 'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3", 
+'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'report_reason': 'Report Reason' }}
 
 </br>
 
-
-
-</br>
 
 ## **Payload 설명**
 Key        |  Value | Description | Param
@@ -58,16 +57,12 @@ method| turnBT | BT 기능 | true, false
 method| checkUpdate | Check update | 없음
 method| getTelemetry | Aircondition report | 없음
 
-
-
-
 </br></br>
-
 
 ## **시퀀스 다이어그램**
 
 1. RPC 명령
-    - 장비를 제어한다.
+    - 디바이스를 제어한다.
    ```plantuml
    @startuml
      participant "AirDeep[AQS]" order 1
@@ -84,12 +79,18 @@ method| getTelemetry | Aircondition report | 없음
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Subscribe  - RPC_REQUEST_TOPIC
 
 
-     group 2. MQTT - 장비 제어
+     group 2. MQTT - 디바이스 제어
      "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 2.1) Publish - TOPIC Starts With (RPC_REQUEST_TOPIC)
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3) on_message
-     note left: method keys\n -getLEDValue\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry\n
+     note left: method keys\n -getLEDValue\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry
 
-     "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.2) Publish - 제어 결과를 전달한다. (TELEMETRY_TOPIC)
+        group 3. MQTT - Publish - RCP 결과를 전달한다.
+        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.2) Publish - 제어 결과를 전달한다. (TELEMETRY_TOPIC)
+        note left: method keys\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry
+        
+        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.3) Publish - 제어 결과를 전달한다. (RPC_RESPONSE_TOPIC + ID)
+        note left: method key\n -getLEDValue
+        end
      end
 
      group 3. MQTT - Upload Telemetry Data
@@ -109,6 +110,16 @@ TELEMETRY_TOPIC ="v1/devices/me/telemetry"
 RPC_REQUEST_TOPIC ="v1/devices/me/rpc/request/+"
 RPC_RESPONSE_TOPIC ="v1/devices/me/rpc/response/"
 
+sensor_data = {
+    'ts' : 0,
+    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp() * 1000,
+    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp() * 1000,
+    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp() * 1000,
+    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().timestamp() * 1000,
+    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now().timestamp() * 1000,
+    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp() * 1000,
+    'report_rsn': 'Report Reason'
+}
 # When device is connected to AirDeep server
 def on_connect(client, userdata, rc, *extra_params):
 
@@ -124,14 +135,15 @@ def on_message(client, userdata, msg):
 
     # Serverside RCP Controller
     if msg.topic.startswith("v1/devices/me/rpc/request/"):
+        # 'v1/devices/me/rpc/request/${id}' :  ${id} 값을 가져와 requestId에 할당한다.
         requestId = msg.topic[len("v1/devices/me/rpc/request/"):len(msg.topic)]
     
         # LED 밝기 조절 setLEDValue, getLEDValue (0~100) LED on 될때의 전체 밝기의 비율
         # 서버에서 특정값을 조회했을때 서버로 전송함
         if payload["method"] == "getLEDValue":
-        
+
             #LED 값 서버로 전송
-            client.publish(RPC_RESPONSE_TOPIC+requestId, json.dumps({"LEDValue": 10}))
+            client.publish(RPC_RESPONSE_TOPIC + requestId, json.dumps({"LEDValue": 10}))
         
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
         if payload["method"] == "setLEDValue":
@@ -175,17 +187,8 @@ def on_message(client, userdata, msg):
         # Aircondition report getTelemetry 리포트 주기에 상관없이 명령을 받으면, 현재 aircondition을 report 함
         # 서버에서 특정값을 조회했을때 서버로 전송함
         if payload['method'] == 'getTelemetry':
-            client.publish(TELEMETRY_TOPIC, json.dumps({"getTelemetry": {
-                    'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 
-                    'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%",
-                    'co2': 0, 'co2_max': 0, 'co2_unit': "ppm",
-                    'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 
-                    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3", 
-                    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3",
-                    'report_reason': 'Report Reason'
-                }})
-            )
-
+            
+            client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data))
         return
 
 

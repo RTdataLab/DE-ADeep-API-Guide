@@ -1,5 +1,8 @@
 # Rest API - Airdeep.DeviceRegister 
 
+## **설명**
+  - 디바이스를 등록한다.
+
 ## **선행 조건**
   - 없음
 ## **Protocol**
@@ -67,24 +70,24 @@
   **msg.device.attribute.shared** | **Number**| server, client 공유 속성 정보 |
   **msg.device.attribute.shared.uploadFrequency** | **Number**| 센서 데이터 주기 (초) |
   **msg.device.attribute.client** | **String**| client 속성 정보 | 
-  **msg.device.attribute.client.lastFirmwareVersion** | **String**| 단말의 펌웨어 버전 | 
-  **msg.device.attribute.client.lastBootingTime** | **String**| 단말의  부팅 시간 (Unix Timestamp, Sec) | 
+  **msg.device.attribute.client.lastFirmwareVersion** | **String**| 디바이스의 펌웨어 버전 | 
+  **msg.device.attribute.client.lastBootingTime** | **String**| 디바이스의  부팅 시간 (Unix Timestamp, Sec) | 
 
 </br>
 
 
 * **Attribute 설정 정보**
-  | 설정키 | 목적 | 공용(서버/장비) | 장비 | 
+  | 설정키 | 목적 | 공용(서버/디바이스) | 디바이스 | 
   |:-----|:----|:----:|:----:|
   | uploadFrequency | 데이터 업로드 주기를 설정한다.| O | O |
-  | lastFirmwareVersion | 장비의 현재 펌웨어 버전을 기록한다. | X | O |
+  | lastFirmwareVersion | 디바이스의 현재 펌웨어 버전을 기록한다. | X | O |
   | lastBootingTime | 마지막 구동 시간을 기록한다. | X | O |
 </br>
 
 
 
 ## **CURL 예시**
-  ```
+  ```json
 curl --location --request POST 'https://dev-api-airdeep.rtdata.co.kr/v1/devices/register' \
 --header 'Content-Type: application/json' \
 --data-raw ' {

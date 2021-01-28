@@ -82,13 +82,14 @@ device_client_attributes = {
 provisioning.saveDeviceAttributes(MOBIDEEP_HTTP_HOST, credentialsId, device_client_attributes)
 
 sensor_data = {
-    'temperature_value': 0, 'temperature_max_value': 0,'temperature_ts': 0,'temperature_unit':'C', 
-    'humidity_value': 0, 'humidity_max_value': 0, 'humidity_ts': 0, 'humidity_unit': "%",
-    'co2_value': 0, 'co2_max_value': 0, 'co2_ts': 0, 'co2_unit': "ppm",
-    'pm10_value': 0, 'pm10_max_value': 0, 'pm10_ts': 0, 'pm10_unit': "µg/m3", 
-    'pm2.5_value': 0, 'pm2.5_max_value': 0, 'pm2.5_ts': 0, 'pm2.5_unit': "µg/m3", 
-    'tvoc_value': 0, 'tvoc_max_value': 0, 'tvoc_ts': 0, 'tvoc_unit': "mg/m3",
-    'report_reason': 'Report Reason'
+    'ts' : 0,
+    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp(),
+    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp(),
+    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp(),
+    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().timestamp(),
+    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now().timestamp(),
+    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp(),
+    'report_rsn': 'Report Reason'
 }
 
 while True:
@@ -101,24 +102,25 @@ while True:
             uploadFrequency = attributes.get("shared").get("uploadFrequency")
 
     # Set sensor data
-    sensor_data['temperature_value'] = random.randint(0, 100)
-    sensor_data['humidity_value'] = random.randint(0, 100)
-    sensor_data['humidity_max_value'] = random.randint(0, 100)
-    sensor_data['co2_value'] = random.randint(0, 100)
-    sensor_data['co2_max_value'] = random.randint(0, 100)
-    sensor_data['pm10_value'] = random.randint(0, 100)
-    sensor_data['pm10_max_value'] = random.randint(0, 100)
-    sensor_data['pm2.5_value'] = random.randint(0, 100)
-    sensor_data['pm2.5_max_value'] = random.randint(0, 100)
-    sensor_data['tvoc_value'] = random.randint(0, 100)
-    sensor_data['tvoc_max_value'] = random.randint(0, 100)
-
-    sensor_data['temperature_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    sensor_data['humidity_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    sensor_data['co2_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    sensor_data['pm10_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    sensor_data['pm2.5_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-    sensor_data['tvoc_ts'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    timestamp_info = provisioning.getUTCTimestamp(AIRDEEP_HTTP_HOST, random.randint(0, 100), "UTC")
+    ts = timestamp_info.get("msg").get("timestamp")
+    sensor_data['temp'] = random.randint(0, 100)
+    sensor_data['temp_ts'] = ts
+    sensor_data['hmd'] = random.randint(0, 100)
+    sensor_data['hmd_max'] = random.randint(0, 100)
+    sensor_data['hmd_ts'] = ts
+    sensor_data['co2'] = random.randint(0, 100)
+    sensor_data['co2_max'] = random.randint(0, 100)
+    sensor_data['co2_ts'] = ts
+    sensor_data['pm10'] = random.randint(0, 100)
+    sensor_data['pm10_max'] = random.randint(0, 100)
+    sensor_data['pm10_ts'] = ts
+    sensor_data['pm2.5'] = random.randint(0, 100)
+    sensor_data['pm2.5_max'] = random.randint(0, 100)
+    sensor_data['pm2.5_ts'] = ts
+    sensor_data['tvoc'] = random.randint(0, 100)
+    sensor_data['tvoc_max'] = random.randint(0, 100)
+    sensor_data['tvoc_ts'] = ts
 
     # 9. Upload Device telemetry data to mobideep server using device telemetry API
     provisioning.uploadDeviceTelemetry(MOBIDEEP_HTTP_HOST, credentialsId, sensor_data)

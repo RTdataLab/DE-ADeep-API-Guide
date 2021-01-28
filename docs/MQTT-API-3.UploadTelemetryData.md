@@ -1,7 +1,7 @@
 # MQTT API - Airdeep.RPC Command
 
 ## **요약 설명**
-  - 단말은 서버로부터 수신된 'uploadFrequency' 를 기준으로 TelemetryData 를 업로드 한다.
+  - 디바이스는 서버로부터 수신된 'uploadFrequency' 를 기준으로 TelemetryData 를 업로드 한다.
 
 ## **선행 조건**
   - 장치 등록 
@@ -66,7 +66,7 @@ report_rsn| Report Reason | 전송 이유(주기적 수집, 요청에 의한 One
 ## **시퀀스 다이어그램**
 
 1. TelemetryData 업로드
-    - 장비 업데이트 후 펌웨어 값 전달
+    - 디바이스 업데이트 후 펌웨어 값 전달
    ```plantuml
    @startuml
      participant "AirDeep[AQS]" order 1
@@ -96,79 +96,6 @@ report_rsn| Report Reason | 전송 이유(주기적 수집, 요청에 의한 One
 </br></br>
 
 
-
-## Python Example
-
-```python
-import paho.mqtt.client as mqtt
-import random
-import time
-from datetime import datetime
-import threading
-import logging
-import json
-
-AIRDEEP_MQTT_HOST="" # 디바이스 등록시 받은 host
-AIRDEEP_MQTT_PORT="" # 디바이스 등록시 받은 port
-DEVICE_ACCESS_TOKEN="" # 디바이스 등록시 받은 credentialsId
-
-# Publishing topic
-TELEMETRY_TOPIC ="v1/devices/me/telemetry"
-ATTRIBUTES_REQUEST_TOPIC = "v1/devices/me/attributes/request/1"
-ATTRIBUTES_RESPONSE_TOPIC = "v1/devices/me/attributes/response/1"
-
-# Sensor data
-sensor_data = {
-    'ts':0,
-    'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 'temperature_ts': 0, 
-    'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'humidity_ts': 0, 
-    'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'co2_ts': 0, 
-    'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 'pm10_ts': 0, 
-    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3", 'pm2.5_ts': 0, 
-    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'tvoc_ts': 0, 
-    'report_reason': 'Report Reason'
-}
-
-# Mqtt client
-client = mqtt.Client()
-
-# Set device access token
-client.username_pw_set(DEVICE_ACCESS_TOKEN)
-
-# Connect to airdeep server using MQTT port and 60 seconds keepalive interval
-logging.debug("Connecting to  "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" using mqtt protocal")
-client.connect(AIRDEEP_MQTT_HOST, AIRDEEP_MQTT_PORT)
-
-client.loop_start()
-
-try:
-    while True:
-        # Set sensor data
-        sensor_data['temperature'] = random.randint(0, 100)
-        sensor_data['humidity'] = random.randint(0, 100)
-        sensor_data['humidity_max'] = random.randint(0, 100)
-        sensor_data['co2'] = random.randint(0, 100)
-        sensor_data['co2_max'] = random.randint(0, 100)
-        sensor_data['pm10'] = random.randint(0, 100)
-        sensor_data['pm10_max'] = random.randint(0, 100)
-        sensor_data['pm2.5'] = random.randint(0, 100)
-        sensor_data['pm2.5_max'] = random.randint(0, 100)
-        sensor_data['tvoc'] = random.randint(0, 100)
-        sensor_data['tvoc_max'] = random.randint(0, 100)
-
-        # Sending sensor data to airdeep
-        client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
-        
-        time.sleep(uploadFrequency) 
-
-except KeyboardInterrupt:
-    #GPIO.cleanup() 
-    pass
-
-client.loop_stop()
-client.disconnect()
-```
- 
 ## **Python Example**
 ```python
 import requests
@@ -243,9 +170,9 @@ try:
         sensor_data['tvoc_max'] = random.randint(0, 100)
         sensor_data['tvoc_ts'] = ts
 
-        # Sending humidity and temperature data to ThingsBoard
+        
         client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
-        #logging.debug("Uploaded telemetry to   "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" using mqtt protocal with payload " + json.dumps(sensor_data))
+ 
 
         time.sleep(uploadFrequency) 
   ```

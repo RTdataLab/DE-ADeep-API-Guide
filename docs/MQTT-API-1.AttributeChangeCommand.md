@@ -1,8 +1,8 @@
 # MQTT API - Airdeep.Attribute Change Command
 
 ## **설명**
-  - 단말에서 Client Attribute 속성을 변경한다. (현재 firmwareVersion, lastBootingTime 만 존재하에 설명한다)
-  - 서버에서 Shard Attribute 속성을 변경하면, 단말에게 변경된 속성 값이 전달되고 단말은 변경된 속성 값을 반영처리 한다. (현재 uploadFrequency 만 존재하에 설명한다)
+  - 디바이스에서 Client Attribute 속성을 변경한다. (현재 firmwareVersion, lastBootingTime 만 존재하에 설명한다)
+  - 서버에서 Shard Attribute 속성을 변경하면, 디바이스에게 변경된 속성 값이 전달되고 디바이스은 변경된 속성 값을 반영처리 한다. (현재 uploadFrequency 만 존재하에 설명한다)
 
 ## **선행 조건**
   - 장치 등록 
@@ -17,7 +17,7 @@
 </br>
 
 ## **Host Name**
-- [디바이스 등록 과정](./HTTP-API-DeviceRegister.md)에서 수신받은 MQTT 호스트 정보
+- [디바이스 등록 과정](./HTTP-API-2.DeviceRegister.md)에서 수신받은 MQTT 호스트 정보
 
 </br>
 
@@ -42,16 +42,17 @@ NO | TOPIC    | Send(Publish) | Recv(on_message)
 ## **Payload 설명**
 Key        |  Description | Notes
 :----------|:-----------------|:------------------
-uploadFrequency| 변경된 Telemetry Upload 주기를 수신| 단말은 업로드 주기를 변경한다.
-lastBootingTime| 단말의  부팅 시간 (Unix Timestamp, Sec)| 
+uploadFrequency| 변경된 Telemetry Upload 주기를 수신| 디바이스은 업로드 주기를 변경한다.
+lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)| 
 
 </br></br>
-
 
 ## **시퀀스 다이어그램**
 
 1. [Client-Side] firmwareVersion, lastBootingTime
-    - 장비 업데이트 후 펌웨어 값 전달
+    - 디바이스 값 을 서버에 전달하여 저장한다.
+    - 디바이스 값 을 서버에 요청하여 전달 받는다.
+    - 디바이스 펌웨어가 업데이트 되어지면, 서버에 전달하여 버전을 저장한다.
    ```plantuml
    @startuml
      participant "AirDeep[AQS]" order 1
@@ -83,7 +84,7 @@ lastBootingTime| 단말의  부팅 시간 (Unix Timestamp, Sec)|
 </br></br>
 
 2. [Server-Side] uploadFrequency - Telemetry Upload Interval Time(Sec) 변경
-    - 업로드 주기를 서버에서 변경
+    - 서버에서 업로드 주기를 변경하면, 디바이스는 전달받아 처리한다.
 
    ```plantuml
    @startuml
@@ -98,7 +99,7 @@ lastBootingTime| 단말의  부팅 시간 (Unix Timestamp, Sec)|
 
      == MQTT Session Established ==
      group 2. MQTT - Shared Attribute 값 수신 후 적용
-     "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shard) 값 요청)
+     "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shared) 값 요청)
      "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime), Shard(uploadFrequency)) )
      
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3) on_message(uploadFrequency (10 Sec))
@@ -132,8 +133,6 @@ lastBootingTime| 단말의  부팅 시간 (Unix Timestamp, Sec)|
    ```
 
 </br>
-
-
  
 ## **Python Example**
 ```python
@@ -150,7 +149,7 @@ ATTRIBUTES_RESPONSE_TOPIC = "v1/devices/me/attributes/response/1"
 # When device is connected to AirDeep server
 def on_connect(client, userdata, rc, *extra_params):
 
-    # 펍웨어 버전이 업데이트 되었다면, 장비의 펌웨어 버전을 전달한다.
+    # 펍웨어 버전이 업데이트 되었다면, 디바이스의 펌웨어 버전을 전달한다.
     device_client_attributes = {
         'firmwareVersion': 5.0, 'lastBootingTime': timestamp
     }
@@ -181,35 +180,40 @@ def on_message(client, userdata, msg):
         if payload["uploadFrequency"] > 0:
             uploadFrequency = payload["uploadFrequency"]
         return
-
-
     
 # Sensor data
 sensor_data = {
-    'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 
-    'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%",
-    'co2': 0, 'co2_max': 0, 'co2_unit': "ppm",
-    'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 
-    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3", 
-    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3",
-    'report_reason': 'Report Reason'
+    'ts' : 0,
+    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp() * 1000,
+    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp() * 1000,
+    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp() * 1000,
+    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().timestamp() * 1000,
+    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now().timestamp() * 1000,
+    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp() * 1000,
+    'report_rsn': 'Report Reason'
 }
 
-# publish sensor data
 try:
     while True:
-        # Set sensor data
-        sensor_data['temperature'] = random.randint(0, 100)
-        sensor_data['humidity'] = random.randint(0, 100)
-        sensor_data['humidity_max'] = random.randint(0, 100)
+        timestamp_info = provisioning.getUTCTimestamp(AIRDEEP_HTTP_HOST, random.randint(0, 100), "UTC")
+        ts = timestamp_info.get("msg").get("timestamp")
+        sensor_data['temp'] = random.randint(0, 100)
+        sensor_data['temp_ts'] = ts
+        sensor_data['hmd'] = random.randint(0, 100)
+        sensor_data['hmd_max'] = random.randint(0, 100)
+        sensor_data['hmd_ts'] = ts
         sensor_data['co2'] = random.randint(0, 100)
         sensor_data['co2_max'] = random.randint(0, 100)
+        sensor_data['co2_ts'] = ts
         sensor_data['pm10'] = random.randint(0, 100)
         sensor_data['pm10_max'] = random.randint(0, 100)
+        sensor_data['pm10_ts'] = ts
         sensor_data['pm2.5'] = random.randint(0, 100)
         sensor_data['pm2.5_max'] = random.randint(0, 100)
+        sensor_data['pm2.5_ts'] = ts
         sensor_data['tvoc'] = random.randint(0, 100)
         sensor_data['tvoc_max'] = random.randint(0, 100)
+        sensor_data['tvoc_ts'] = ts
 
         client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
         time.sleep(uploadFrequency) 

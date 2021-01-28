@@ -1,9 +1,14 @@
 # Rest API - Airdeep.GetCurrentTime 
 
+## **설명**
+  - 디바이스에게 시간 정보를 제공한다.
+
 ## **선행 조건**
   - 없음
+  
 ## **Protocol**
 - HTTP / TLS
+
 ## **Host Name**
 - **개발기 : https://dev-api-airdeep.rtdata.co.kr**
 - **상용기 : https://api-airdeep.rtdata.co.kr**
