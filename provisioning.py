@@ -7,6 +7,25 @@ DEVICE_CREDENTIALS_ENDPOINT = "/api/device"
 DEVICE_SHARED_ATTRIBUTES_ENDPOINT  = "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE"
 DEVICE_ATTRIBUTES_ENDPOINT  = "/api/v1/token/attributes"
 DEVICE_TELEMETRY_ENDPOINT   = "/api/v1/token/telemetry"
+ONE_STEP_DEVICE_PROVISIONING_API = "/v1/devices/register"
+TIMESTAMP_ENDPOINT = "/v1/infos/time"
+
+#Get current UTC timestamp
+def getUTCTimestamp(HTTP_HOST, msgId, timeZone):
+    headers = {
+        "content-type":"application/json"
+    }
+    response = requests.request("GET", (HTTP_HOST+TIMESTAMP_ENDPOINT+"?msgId="+str(msgId)+"&getTimeByZid="+timeZone), headers=headers)
+    return response.json()
+
+#Device provisioning
+def provision(HTTP_HOST, payload):
+    headers = {
+        "content-type":"application/json"
+    }
+
+    response = requests.request("POST", HTTP_HOST+ONE_STEP_DEVICE_PROVISIONING_API, data=json.dumps(payload), headers=headers)
+    return response.json()
 
 # Get device entity groups
 def getDeviceEntityGroups(http_host, token):
