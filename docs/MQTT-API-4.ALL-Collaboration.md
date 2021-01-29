@@ -1,6 +1,6 @@
-# MQTT - Airdeep.MqttConnection
+# MQTT - Airdeep.ALL-Collaboration
 
-## **설명**
+## **목적**
   - 서버의 제어 명령어를 디바이스이 처리하고, 처리 결과를 서버에 전달한다.
 
 

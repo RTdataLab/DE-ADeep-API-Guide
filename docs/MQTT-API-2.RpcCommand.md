@@ -1,7 +1,7 @@
-# MQTT API - Airdeep.RPC Command
+# MQTT API - Airdeep.RpcCommand
 
-## **설명**
-  - 서버의 제어 명령어를 디바이스이 처리하고, 처리 결과를 서버에 전달한다.
+## **목적**
+  - 디바이스는 서버로 부터 수신 된 제어 명령어를 처리하고, 처리 결과를 서버에 전달한다.
 
 ## **선행 조건**
   - 장치 등록 
@@ -38,9 +38,8 @@ NO | TOPIC    | Send(Publish) | Recv(on_message) | Response
 4 | v1/devices/me/rpc/request/+ | X | {"method":"reset","params":"{}"} | {"reset": "true"}
 5 | v1/devices/me/rpc/request/+ | X | {"method":"notify","params":"{1}"} | {"notify": params}
 6 | v1/devices/me/rpc/request/+ | X | {"method":"turnBT","params":true} | {"turnBlutooth": params}
-7 | v1/devices/me/rpc/request/+ | X | {"method":"checkUpdate","params":"{}"} | {"checkUpdate": :}
-8 | v1/devices/me/rpc/request/+ | X | {"method":"getTelemetry","params":"{}"} | {"getTelemetry": { 'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3", 
-'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'report_reason': 'Report Reason' }}
+7 | v1/devices/me/rpc/request/+ | X | {"method":"checkUpdate","params":"{}"} | {"checkUpdate": {}}
+8 | v1/devices/me/rpc/request/+ | X | {"method":"getTelemetry","params":"{}"} | {"getTelemetry": { 'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3",  'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'report_reason': 'Report Reason' }}
 
 </br>
 

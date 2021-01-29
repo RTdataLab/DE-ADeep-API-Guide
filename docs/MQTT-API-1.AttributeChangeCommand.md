@@ -1,8 +1,8 @@
-# MQTT API - Airdeep.Attribute Change Command
+# MQTT API - Airdeep.AttributeChangeCommand
 
-## **설명**
-  - 디바이스에서 Client Attribute 속성을 변경한다. (현재 firmwareVersion, lastBootingTime 만 존재하에 설명한다)
-  - 서버에서 Shard Attribute 속성을 변경하면, 디바이스에게 변경된 속성 값이 전달되고 디바이스은 변경된 속성 값을 반영처리 한다. (현재 uploadFrequency 만 존재하에 설명한다)
+## **목적**
+  - 디바이스에서 Client Attribute 속성 값을 변경한다. (현재 firmwareVersion, lastBootingTime 만 존재하에 설명한다)
+  - 서버에서 Shard Attribute 속성 값을 변경한다. (현재 uploadFrequency 만 존재하에 설명한다)
 
 ## **선행 조건**
   - 장치 등록 
@@ -26,7 +26,7 @@ NO | TOPIC    | Publish | Subscribe | Description
 :------: | :------ | :---------: | :----------: | :----------
 1  | v1/devices/me/attributes  | O | O | **Publish**</br> 'Client Attribute' 를 업데이트 한다.  </br> **Subscribe** </br> 'Shard Attribute' 업데이트 수신
 2  | v1/devices/me/attributes/request/1  | O | X |  **Publish**</br> 서버에 저장된 Attribute(Client, Shard) 값을 요청한다. 
-3  | v1/devices/me/attributes/response/1  | X | X | 2번 요청의 응답 값</br> on_message 콜백으로 응답 값이 수신된다. 
+3  | v1/devices/me/attributes/response/1  | X | X | 위 'NO2' 의 요청의 응답 값</br> on_message 콜백으로 응답 값이 수신된다. 
 
 </br>
 
@@ -50,8 +50,8 @@ lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)|
 ## **시퀀스 다이어그램**
 
 1. [Client-Side] firmwareVersion, lastBootingTime
-    - 디바이스 값 을 서버에 전달하여 저장한다.
-    - 디바이스 값 을 서버에 요청하여 전달 받는다.
+    - 디바이스 값을 서버에 전달하여 저장한다.
+    - 디바이스 값을 서버에 요청하여 전달 받는다.
     - 디바이스 펌웨어가 업데이트 되어지면, 서버에 전달하여 버전을 저장한다.
    ```plantuml
    @startuml
@@ -159,7 +159,7 @@ def on_connect(client, userdata, rc, *extra_params):
     # 1.1) Attribute(Client, Shared) 값 요청한다.
     client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime","sharedKeys": "uploadFrequency"}))
 
-    # 2.1) 서버에서 Device의 Shared Attribute 변경 시, 변경된 값을 받기 위하여 Subscribe 요청.
+    # 2.1) 서버에서 Device의 Shared Attribute 변경 시, 변경된 값을 받기 위하여 Subscribe 구독.
     client.subscribe(ATTRIBUTES_TOPIC)
 
 

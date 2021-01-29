@@ -1,7 +1,7 @@
 # Rest API - Airdeep.DeviceRegister 
 
-## **설명**
-  - 디바이스를 등록한다.
+## **목적**
+  - 디바이스를 서버에 등록한다.
 
 ## **선행 조건**
   - 없음
@@ -96,8 +96,8 @@ curl --location --request POST 'https://dev-api-airdeep.rtdata.co.kr/v1/devices/
     "msgDateFormat": "yyyy-MM-dd HH:mm:ssZ",
     "msgType": 1100,
     "msg": {
-        "auth" : {"username": "cj.lee@mobideep.co.kr",
-                  "password": "123456789"},
+        "auth" : {"username": "username",
+                  "password": "password"},
         "device": {
             "id": "device-id",
             "attribute": {

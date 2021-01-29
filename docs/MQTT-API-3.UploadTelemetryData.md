@@ -1,7 +1,7 @@
-# MQTT API - Airdeep.RPC Command
+# MQTT API - Airdeep.UploadTelemetryData
 
-## **요약 설명**
-  - 디바이스는 서버로부터 수신된 'uploadFrequency' 를 기준으로 TelemetryData 를 업로드 한다.
+## **목적**
+  - 디바이스는 서버로부터 수신된 'uploadFrequency'(Sec) 를 기준으로 TelemetryData 를 업로드 한다.
 
 ## **선행 조건**
   - 장치 등록 

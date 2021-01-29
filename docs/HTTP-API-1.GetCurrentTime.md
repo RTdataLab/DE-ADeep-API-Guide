@@ -1,6 +1,6 @@
 # Rest API - Airdeep.GetCurrentTime 
 
-## **설명**
+## **목적**
   - 디바이스에게 시간 정보를 제공한다.
 
 ## **선행 조건**
