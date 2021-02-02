@@ -136,9 +136,19 @@ lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)|
  
 ## **Python Example**
 ```python
-import requests
-import json
+from __future__ import division
+import paho.mqtt.client as mqtt
+import random
+import time
 from datetime import datetime
+import threading
+import logging
+import json
+
+AIRDEEP_HTTP_HOST = ""
+AIRDEEP_MQTT_HOST = ""
+AIRDEEP_MQTT_PORT = 1883
+DEVICE_ACCESS_TOKEN = ""
 
 uploadFrequency = 1
 
@@ -192,6 +202,22 @@ sensor_data = {
     'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp() * 1000,
     'report_rsn': 'Report Reason'
 }
+
+# Mqtt client
+client = mqtt.Client()
+
+# Set device access token
+client.username_pw_set(DEVICE_ACCESS_TOKEN)
+
+# Setting callback function on mqtt connection with mobideep server
+client.on_connect = on_connect
+
+# Setting callback function on mqtt message update
+client.on_message = on_message
+
+# Connect to mobideep server using MQTT port and 60 seconds keepalive interval
+logging.debug("Connecting to  "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" using mqtt protocal")
+client.connect(AIRDEEP_MQTT_HOST, AIRDEEP_MQTT_PORT)
 
 try:
     while True:
