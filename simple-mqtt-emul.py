@@ -116,7 +116,7 @@ def on_connect(client, userdata, rc, *extra_params):
     client.publish(ATTRIBUTES_TOPIC, json.dumps(device_client_attributes))
 
     # Publish request for 'appState' client attribute and two shared attributes 'uploadFrequency' and 'latestVersion'
-    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime","sharedKeys": "uploadFrequency"}))
+    #client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"sharedKeys": "uploadFrequency"}))
     logging.debug("Subscribed and published on mqtt connection")
 
 # Execute when message is updated
@@ -258,7 +258,7 @@ try:
 
         # Sending humidity and temperature data to ThingsBoard
         client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
-        #logging.debug("Uploaded telemetry to   "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" using mqtt protocal with payload " + json.dumps(sensor_data))
+        logging.debug("Uploaded telemetry to   "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" at "+str(ts)+" using mqtt protocal with payload \n" + json.dumps(sensor_data))
 
         time.sleep(uploadFrequency) 
 
