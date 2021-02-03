@@ -33,9 +33,9 @@ NO | TOPIC    | Publish | Subscribe | Description
 ## **Payload**
 NO | TOPIC    | Send(Publish) | Recv(on_message)
 :------: | :------ | :--------- | :----------
-1  | v1/devices/me/attributes  | { 'firmwareVersion': 5.0, 'lastBootingTime': timestamp(sec) } | { "uploadFrequency": 2 } 
-2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, lastBootingTime", "sharedKeys": "uploadFrequency" } | X
-3  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": 5.0,"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
+1  | v1/devices/me/attributes  | { 'firmwareVersion': '5.0', 'timeZone': 'Asai/Seoul', 'lastBootingTime': timestamp(sec) } | { "uploadFrequency": 2 } 
+2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, timeZone, lastBootingTime", "sharedKeys": "uploadFrequency" } | X
+3  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": "5.0", 'timeZone': 'Asai/Seoul',"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
 
 </br>
 
@@ -43,6 +43,8 @@ NO | TOPIC    | Send(Publish) | Recv(on_message)
 Key        |  Description | Notes
 :----------|:-----------------|:------------------
 uploadFrequency| 변경된 Telemetry Upload 주기를 수신| 디바이스은 업로드 주기를 변경한다.
+firmwareVersion| firmware version (String)|
+timeZone| 디바이스 설치 timezone (Asia/Seoul: string)|
 lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)| 
 
 </br></br>
@@ -161,13 +163,13 @@ def on_connect(client, userdata, rc, *extra_params):
 
     # 펍웨어 버전이 업데이트 되었다면, 디바이스의 펌웨어 버전을 전달한다.
     device_client_attributes = {
-        'firmwareVersion': 5.0, 'lastBootingTime': timestamp
+        'firmwareVersion': '5.0', 'timeZone': 'Asia/Seoul', 'lastBootingTime': timestamp
     }
     client.publish(ATTRIBUTES_TOPIC, json.dumps(device_client_attributes))
 
 
     # 1.1) Attribute(Client, Shared) 값 요청한다.
-    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime","sharedKeys": "uploadFrequency"}))
+    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime,timeZone","sharedKeys": "uploadFrequency"}))
 
     # 2.1) 서버에서 Device의 Shared Attribute 변경 시, 변경된 값을 받기 위하여 Subscribe 구독.
     client.subscribe(ATTRIBUTES_TOPIC)
