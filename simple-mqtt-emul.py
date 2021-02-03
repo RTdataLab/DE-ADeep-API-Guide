@@ -78,7 +78,7 @@ if not DEVICE_ACCESS_TOKEN:
                 "id": DEVICE_NAME,
                 "attribute": {
                     "shared": { "uploadFrequency": uploadFrequency  },
-                    "client": { "lastFirmwareVersion": 2001,
+                    "client": { "firmwareVersion": "2001",
                     "timeZone": "Asia/Seoul",
                     "lastBootingTime" : 50000 }
                 }
@@ -116,7 +116,7 @@ def on_connect(client, userdata, rc, *extra_params):
     client.publish(ATTRIBUTES_TOPIC, json.dumps(device_client_attributes))
 
     # Publish request for 'appState' client attribute and two shared attributes 'uploadFrequency' and 'latestVersion'
-    #client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"sharedKeys": "uploadFrequency"}))
+    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"sharedKeys": "uploadFrequency"}))
     logging.debug("Subscribed and published on mqtt connection")
 
 # Execute when message is updated
