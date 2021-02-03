@@ -33,8 +33,8 @@ NO | TOPIC    | Publish | Subscribe | Description
 ## **Payload**
 NO | TOPIC    | Send(Publish) | Recv(on_message)
 :------: | :------ | :--------- | :----------
-1  | v1/devices/me/attributes  | { 'firmwareVersion': '5.0', 'timeZone': 'Asai/Seoul', 'lastBootingTime': timestamp(sec) } | { "uploadFrequency": 2 } 
-2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, timeZone, lastBootingTime", "sharedKeys": "uploadFrequency" } | X
+1  | v1/devices/me/attributes  | { 'firmwareVersion': '5.0', 'timeZone': 'Asai/Seoul', 'lastBootingTime': timestamp(sec) } | X 
+2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, timeZone, lastBootingTime", "sharedKeys": "uploadFrequency" } | { "firmwareVersion": "5.0", 'timeZone': 'Asai/Seoul',"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
 3  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": "5.0", 'timeZone': 'Asai/Seoul',"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
 
 </br>
