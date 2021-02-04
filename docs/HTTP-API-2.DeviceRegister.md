@@ -47,8 +47,9 @@
               'id': 'device name',
               'attribute': {
                   'shared': { 'uploadFrequency': 2  },
-                  'client': { 'lastFirmwareVersion': 1001,
-                  'lastBootingTime' : timestamp }
+                  'client': { 'firmwareVersion': '1001',
+                  'lastBootingTime': timestamp,
+                  'timeZone': 'Asia/Seoul'}
               }
           }
        }
@@ -70,7 +71,8 @@
   **msg.device.attribute.shared** | **Number**| server, client 공유 속성 정보 |
   **msg.device.attribute.shared.uploadFrequency** | **Number**| 센서 데이터 주기 (초) |
   **msg.device.attribute.client** | **String**| client 속성 정보 | 
-  **msg.device.attribute.client.lastFirmwareVersion** | **String**| 디바이스의 펌웨어 버전 | 
+  **msg.device.attribute.client.firmwareVersion** | **String**| 디바이스의 펌웨어 버전 | 
+  **msg.device.attribute.client.timeZone** | **String**| 디바이스의 타임 존 | 
   **msg.device.attribute.client.lastBootingTime** | **String**| 디바이스의  부팅 시간 (Unix Timestamp, Sec) | 
 
 </br>
@@ -80,7 +82,7 @@
   | 설정키 | 목적 | 공용(서버/디바이스) | 디바이스 | 
   |:-----|:----|:----:|:----:|
   | uploadFrequency | 데이터 업로드 주기를 설정한다.| O | O |
-  | lastFirmwareVersion | 디바이스의 현재 펌웨어 버전을 기록한다. | X | O |
+  | firmwareVersion | 디바이스의 현재 펌웨어 버전을 기록한다. | X | O |
   | lastBootingTime | 마지막 구동 시간을 기록한다. | X | O |
 </br>
 
@@ -102,8 +104,10 @@ curl --location --request POST 'https://dev-api-airdeep.rtdata.co.kr/v1/devices/
             "id": "device-id",
             "attribute": {
                 "shared": { "uploadFrequency": 2  },
-                "client": { "lastFirmwareVersion": 1001,
-                "lastBootingTime" : 123456 }
+                "client": { "firmwareVersion": "1001",
+                "lastBootingTime" : 123456,
+                "timeZone": "Asia/Seoul"
+                }
             }
         }
      }
@@ -218,8 +222,10 @@ print(response.json())
       "id":"{deviceId}",
       "attribute": {
         "shard": {"uploadFrequency": "{frequency Num}"},
-        "client": {"lastfirmwareVersion": "{version Num}", 
-                   "lastBootingTime": "{timestamp utc(0)}"}
+        "client": {"firmwareVersion": "{version String}", 
+                   "lastBootingTime": "{timestamp utc(0)}",
+                   "timeZone": "{timestamp String}"
+                   }
       }
     }
   }
@@ -243,12 +249,7 @@ print(response.json())
       {
         "type":"{typeId}",
         "host":"{host-name}",
-        "post":"{port-num}",
-        "attribute": {
-        "shard": {"uploadFrequency": "{frequency Num}"},
-        "client": {"lastfirmwareVersion": "{version Num}", 
-                   "lastBootingTime": "{timestamp utc(0)}"}
-        }      
+        "post":"{port-num}"     
       }
     ]
   }

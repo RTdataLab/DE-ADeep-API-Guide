@@ -6,6 +6,7 @@
 |2021-01-14| 0.2.0 | - 다이어그램 수정</br> - Device 등록 Wrapper API 추가</br> - Server URL 변경</br>- Time API 추가   | 유수던</br>이창주 |
 |2021-01-28| 0.3.0 | - HTTP API, MQTT API 가이드 개선  | 유수던</br>이창주 |
 |2021-01-29| 0.3.1 | - 목차 이름 개선  | 이창주 |
+|2021-02-04| 0.3.2 | - Client Attribute 변경 사항</br>　1. lastFirmwareVersion -> firmwareVersion </br> 　2. firmwareVersion 의 값 타입 변경 Number -> String </br>　3. timeZone 추가 | 이창주 |
 
 </br>
 
