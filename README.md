@@ -7,6 +7,7 @@
 |2021-01-28| 0.3.0 | - HTTP API, MQTT API 가이드 개선  | 유수던</br>이창주 |
 |2021-01-29| 0.3.1 | - 목차 이름 개선  | 이창주 |
 |2021-02-04| 0.3.2 | - Client Attribute 변경 사항</br>　1. lastFirmwareVersion -> firmwareVersion </br> 　2. firmwareVersion 의 값 타입 변경 Number -> String </br>　3. timeZone 추가 | 이창주 |
+|2021-02-05| 0.3.3 | - Client Attribute 변경 사항</br>　RPC 테스트 웹 페이지 추가 - MQTT-API-2.RpcCommand(서버사이드 RPC 테스트) | 이창주 |
 
 </br>
 
