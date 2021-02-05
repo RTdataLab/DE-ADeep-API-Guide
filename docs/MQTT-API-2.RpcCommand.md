@@ -189,8 +189,21 @@ def on_message(client, userdata, msg):
             
             client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data))
         return
+```
+## **서버사이드 RPC 테스트**
+- [RPC 테스트 페이지](http://airdeep.rtdata.co.kr:8080/dashboard/370fc860-4973-11eb-809d-7b30383c06a9?publicId=6c5759c0-65fc-11eb-809d-7b30383c06a9)
+1. LED 밝기 조절 정보요청 : 테스트피에지에서 Set LED Values 위젯의 값을 drag 하여 변경할수 있다. 소수점도 같이 넘어갈 건데, 해당 부분은 서버쪽에서 향후 변경하도록하겠습니다. (method 가 getLEDValue, setLEDValue 로 넘어가며 params으로 0~110 값이 넘어감), 변경 된 값은 7번 테이블에서 확인 가능함
+2. BT 기능 : Turn Blutooth 웨젯에 있는 on/off 버튼 클릭하여 BT 기능 제어 할수 있다. (method 가 turnBT 로 넘어감), 변경 된 값은 7번 테이블에서 확인 가능함
+3. 공장초기화 : 대시보드에 있는 Device factory reset 위젯의 있는 버튼 클릭하여 공장초기화 명령어를 내릴수 있다.(method 가 factoryReset 로 넘어감), 변경 된 값은 7번 테이블에서 확인 가능함
+3. 알람 : Notify to Device 위젯의 있는 버튼 클릭하여 알람 명령어를 내릴수 있다.(method 가 notify 로 넘어가며 params으로 값이 넘어감, 서버에서 추가작업이 필요함), 변경 된 값은 7번 테이블에서 확인 가능함
+4. 리셋 : Device reset 위젯의 있는 버튼 클릭하여 알람 명령어를 내릴수 있다. (method 가 reset 로 넘어감), 변경 된 값은 7번 테이블에서 확인 가능함
+5. checkUpdate : TBD ((method 가 checkUpdate 로 넘어가며 params으로 ? 값이 넘어감)), 변경 된 값은 7번 테이블에서 확인 가능함
+6. Aircondition report (method 가 getTelemetry 로 넘어감)
+7. RPC Result (RPC 명영어 전송후 device에서 response 한 값을 조회 할수 있다.)
+8. New timeseries (실시간 sensor 데이터 확인 할수 있다.)
+<img src="Serverside-RPC-guide.PNG" />
 
-
+* 크롬 브라우저에서 확인해야 하며 브라우저 언어는 영어(우선순위 1)로 설정 되어야 함
 
 
 
