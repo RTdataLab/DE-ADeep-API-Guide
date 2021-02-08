@@ -200,10 +200,10 @@ def on_message(client, userdata, msg):
 5. checkUpdate : TBD ((method 가 checkUpdate 로 넘어가며 params으로 ? 값이 넘어감)), 변경 된 값은 7번 테이블에서 확인 가능함
 6. Aircondition report (method 가 getTelemetry 로 넘어감)
 7. RPC Result (RPC 명영어 전송후 device에서 response 한 값을 조회 할수 있다.)
-8. New timeseries (실시간 sensor 데이터 확인 할수 있다.)
-<img src="Serverside-RPC-guide.PNG" />
+8. New timeseries (실시간 sensor 데이터 확인 할수 있다.)<img src="Serverside-RPC-guide.PNG" />
 
-* 크롬 브라우저에서 확인해야 하며 브라우저 언어는 영어(우선순위 1)로 설정 되어야 함
+* 크롬 브라우저에서 확인해야 하며 "설정 > 고급(언어)" 에서 브라우저 우선 순위는 아래 이미지와 같이 되어 있어야 함.
+  <img src="Chrome-Lang-Setting.png" />
 
 
 
