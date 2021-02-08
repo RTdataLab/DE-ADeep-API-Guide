@@ -1,8 +1,8 @@
 # MQTT API - Airdeep.AttributeChangeCommand
 
 ## **목적**
-  - 디바이스에서 Client Attribute 속성 값을 변경한다. (현재 firmwareVersion, lastBootingTime 만 존재하에 설명한다)
-  - 서버에서 Shard Attribute 속성 값을 변경한다. (현재 uploadFrequency 만 존재하에 설명한다)
+  - 디바이스에서 Client Attribute 속성 값을 변경한다. (현재 firmwareVersion, lastBootingTime, timeZone 만 존재하에 설명한다)
+  - 서버에서 Shard Attribute 속성 값을 변경한다. (현재 uploadFrequency, remoteLogLevel 만 존재하에 설명한다)
 
 ## **선행 조건**
   - 장치 등록 
@@ -33,9 +33,9 @@ NO | TOPIC    | Publish | Subscribe | Description
 ## **Payload**
 NO | TOPIC    | Send(Publish) | Recv(on_message)
 :------: | :------ | :--------- | :----------
-1  | v1/devices/me/attributes  | { 'firmwareVersion': '5.0', 'timeZone': 'Asai/Seoul', 'lastBootingTime': timestamp(sec) } | X 
-2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, timeZone, lastBootingTime", "sharedKeys": "uploadFrequency" } | X
-3  | v1/devices/me/attributes/response/1  | X | 위 'NO2' 의 요청의 응답 값{ "firmwareVersion": "5.0", 'timeZone': 'Asai/Seoul',"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
+1  | v1/devices/me/attributes  | { 'firmwareVersion': '5.0', 'timeZone': 'Asia/Seoul', 'lastBootingTime': timestamp(sec) } | X 
+2  | v1/devices/me/attributes/request/1  | { "clientKeys": "firmwareVersion, timeZone, lastBootingTime", "sharedKeys": "uploadFrequency, remoteLogLevel" } | X
+3  | v1/devices/me/attributes/response/1  | X | 위 'NO2' 의 요청의 응답 값{ "firmwareVersion": "5.0", 'timeZone': 'Asia/Seoul',"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1, "remoteLogLevel": 1} }
 
 </br>
 
@@ -44,14 +44,15 @@ Key        |  Description | Notes
 :----------|:-----------------|:------------------
 uploadFrequency| 변경된 Telemetry Upload 주기를 수신| 디바이스은 업로드 주기를 변경한다.
 firmwareVersion| firmware version (String)|
-timeZone| 디바이스 설치 timezone (Asia/Seoul: string)|
+timeZone| 디바이스의 timezone (Asia/Seoul: string)|
 lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)| 
+remoteLogLevel| 로그 레벨 | DEBUG_NOTHING = 0</br> DEBUG_NORMAL = 1 </br> DEBUG_INFO =  2 </br> DEBUG_DEBUG = 4</br> DEBUG_ERROR = 8
 
 </br></br>
 
 ## **시퀀스 다이어그램**
 
-1. [Client-Side] firmwareVersion, lastBootingTime
+1. [Client-Side] firmwareVersion, lastBootingTime, timeZone
     - 디바이스 값을 서버에 전달하여 저장한다.
     - 디바이스 값을 서버에 요청하여 전달 받는다.
     - 디바이스 펌웨어가 업데이트 되어지면, 서버에 전달하여 버전을 저장한다.
@@ -69,15 +70,19 @@ lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)|
      == MQTT Session Established ==
      group 2. MQTT - 서버의 Attribute 값 요청 및 수신
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shard) 값 요청)
-     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime), Shard(uploadFrequency)) )
+     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime, timeZone), Shard(uploadFrequency, remoteLogLevel)) )
      end
 
      group 3. MQTT - Update Client Attribute (firmwareVersion, lastBootingTime)
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.1) Publish - ATTRIBUTES_TOPIC
      end
 
-     group 4. MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Publish Data - (TELEMETRY_TOPIC) 
+     group 4. MQTT - Upload Device Log Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Upload Device Log Data (Publish TELEMETRY_TOPIC)
+     end
+
+     group 5. MQTT - Upload Telemetry Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 4.1) Publish Data - (TELEMETRY_TOPIC) 
      end
      
      == MQTT Session Established ==
@@ -85,7 +90,57 @@ lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)|
    ```
 </br></br>
 
-2. [Server-Side] uploadFrequency - Telemetry Upload Interval Time(Sec) 변경
+
+2. [Server-Side] remoteLogLevel - Upload Log Level 변경
+    - 서버에서 Log Level 을 변경하면, 디바이스는 전달받아 처리한다.
+
+   ```plantuml
+   @startuml
+     participant "AirDeep[AQS]" order 1
+     participant "AirDeep[MQTT Server]" order 2
+     hide footbox
+
+     group 1. MQTT - Connection
+      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : MQTT Connection(MQTT_HOST, MQTT_PORT, ACCESS_TOKEN(deviceCredentialsId))
+      "AirDeep[AQS]" <- "AirDeep[MQTT Server]"  : Ack(Connected)
+     end
+
+     == MQTT Session Established ==
+     group 2. MQTT - Shared Attribute 값 수신 후 적용
+     "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shared) 값 요청)
+     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime, timeZone), Shard(uploadFrequency, remoteLogLevel)) )
+     
+     "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3) on_message(remoteLogLevel - 10 (DEBUG_INFO | DEBUG_ERROR))
+     end
+
+     group 3. MQTT - Subscribe
+     "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.1) Subscribe - ATTRIBUTES_TOPIC     
+     end
+
+    group 4. MQTT - Upload Device Log Data (DEBUG_INFO | DEBUG_ERROR)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Publish Data - (TELEMETRY_TOPIC) 
+     end
+     
+     group 5. MQTT - Update 'Shared Attribute'
+       "AirDeep[MQTT Server]" <- "AirDeep[MQTT Server]" : 4.1) Change Shard Attr(remoteLogLevel - 2(DEBUG_INFO))
+     end
+
+     group 6. MQTT - on_message
+       "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 4.2) Changed Data(ATTRIBUTES_TOPIC)
+       "AirDeep[AQS]" <- "AirDeep[AQS]" : 4.3) Update local remoteLogLevel - 1(DEBUG_INFO)
+       note left: 변경된 Shared Attribute 수신
+     end
+
+     group 7. MQTT - Upload Device Log Data (DEBUG_INFO)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 5.1) Publish Data - (TELEMETRY_TOPIC,{"remoteLogMessage": {log_data}})
+       note left: 변경된 Shared Attribute 적용
+     end
+     == MQTT Session Established ==
+   @enduml
+   ```
+</br></br>
+
+3. [Server-Side] uploadFrequency - Telemetry Upload Interval Time(Sec) 변경
     - 서버에서 업로드 주기를 변경하면, 디바이스는 전달받아 처리한다.
 
    ```plantuml
@@ -102,7 +157,7 @@ lastBootingTime| 디바이스의  부팅 시간 (Unix Timestamp, Sec)|
      == MQTT Session Established ==
      group 2. MQTT - Shared Attribute 값 수신 후 적용
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shared) 값 요청)
-     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime), Shard(uploadFrequency)) )
+     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC(Attribute (Client(firmwareVersion, lastBootingTime, timeZone), Shard(uploadFrequency)) )
      
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3) on_message(uploadFrequency (10 Sec))
      end
@@ -169,7 +224,7 @@ def on_connect(client, userdata, rc, *extra_params):
 
 
     # 1.1) Attribute(Client, Shared) 값 요청한다.
-    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime,timeZone","sharedKeys": "uploadFrequency"}))
+    client.publish(ATTRIBUTES_REQUEST_TOPIC , json.dumps({"clientKeys": "firmwareVersion,lastBootingTime,timeZone","sharedKeys": "uploadFrequency, remoteLogLevel"}))
 
     # 2.1) 서버에서 Device의 Shared Attribute 변경 시, 변경된 값을 받기 위하여 Subscribe 구독.
     client.subscribe(ATTRIBUTES_TOPIC)
@@ -178,6 +233,7 @@ def on_connect(client, userdata, rc, *extra_params):
 def on_message(client, userdata, msg):
     
     global uploadFrequency
+    global remoteLogLevel
 
     payload = json.loads(msg.payload)
 
@@ -192,7 +248,17 @@ def on_message(client, userdata, msg):
         if payload["uploadFrequency"] > 0:
             uploadFrequency = payload["uploadFrequency"]
         return
-    
+
+    # 3.1) 서버에서 Shard Attribute 변경 시 수신된다.
+    if msg.topic == ATTRIBUTES_RESPONSE_TOPIC:
+        if payload["shared"]["remoteLogLevel"]  > 0:
+            remoteLogLevel = payload["shared"]["remoteLogLevel"]
+        return
+    # 3.2) 서버에서 Shard Attribute 변경 시 수신된다.
+    if msg.topic == ATTRIBUTES_TOPIC:
+        if payload["remoteLogLevel"] > 0:
+            remoteLogLevel = payload["remoteLogLevel"]
+        return
 # Sensor data
 sensor_data = {
     'ts' : 0,
@@ -245,7 +311,6 @@ try:
 
         client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
         time.sleep(uploadFrequency) 
-
 
   ```
 

@@ -25,22 +25,19 @@ NO | TOPIC    | Publish | Subscribe | Description
 :------: | :------ | :---------: | :----------: | :----------
 1  | v1/devices/me/rpc/request/+  | X | O | **Subscribe** </br> 서버로부터 제어 명령어를 받아 처리한다.
 2 | v1/devices/me/telemetry | O | X | **Publish** </br> 제어 결과를 전달한다.
-3 | v1/devices/me/rpc/response | O | X | **Publish** </br> 제어 결과를 전달한다.
-
 </br>
 
 ## **Payload** - 제어명령
 NO | TOPIC    | Send(Publish) | Recv(on_message) | Response
 :------: | :------ | :---------: | :----------| :----------
-1  | v1/devices/me/rpc/request/+  | X | {"method":"getLEDValue"} | {"LEDValue": 10}
-2 | v1/devices/me/rpc/request/+ | X | {"method":"setLEDValue","params":71} | {"LEDValue": params}
+1  | v1/devices/me/rpc/request/+  | X | {"method":"getLEDValue"} | {"getLEDValue": 10}
+2 | v1/devices/me/rpc/request/+ | X | {"method":"setLEDValue","params":71} | {"setLEDValue": params}
 3 | v1/devices/me/rpc/request/+ | X | {"method":"factoryReset","params":"{}"} | {"factoryReset": "true"}
 4 | v1/devices/me/rpc/request/+ | X | {"method":"reset","params":"{}"} | {"reset": "true"}
 5 | v1/devices/me/rpc/request/+ | X | {"method":"notify","params":"{1}"} | {"notify": params}
-6 | v1/devices/me/rpc/request/+ | X | {"method":"turnBT","params":true} | {"turnBlutooth": params}
+6 | v1/devices/me/rpc/request/+ | X | {"method":"turnBT","params":true} | {"turnBT": params}
 7 | v1/devices/me/rpc/request/+ | X | {"method":"checkUpdate","params":"{}"} | {"checkUpdate": {}}
 8 | v1/devices/me/rpc/request/+ | X | {"method":"getTelemetry","params":"{}"} | {"getTelemetry": { 'temperature': 0, 'temperature_max': 0,'temperature_unit':'C', 'humidity': 0, 'humidity_max': 0, 'humidity_unit': "%", 'co2': 0, 'co2_max': 0, 'co2_unit': "ppm", 'pm10': 0, 'pm10_max': 0, 'pm10_unit': "µg/m3", 'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unit': "µg/m3",  'tvoc': 0, 'tvoc_max': 0, 'tvoc_unit': "mg/m3", 'report_reason': 'Report Reason' }}
-
 </br>
 
 
@@ -77,24 +74,26 @@ method| getTelemetry | Aircondition report | 없음
      group 2. MQTT - Subscribe - RPC Topic
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Subscribe  - RPC_REQUEST_TOPIC
 
-
      group 2. MQTT - 디바이스 제어
      "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 2.1) Publish - TOPIC Starts With (RPC_REQUEST_TOPIC)
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3) on_message
      note left: method keys\n -getLEDValue\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry
 
-        group 3. MQTT - Publish - RCP 결과를 전달한다.
+        group 2.1 MQTT - Publish - RCP 결과를 전달한다.
         "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.2) Publish - 제어 결과를 전달한다. (TELEMETRY_TOPIC)
-        note left: method keys\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry
+        note left: method keys\n -getLEDValue\n -setLEDValue\n -factoryReset\n -reset\n -notify\n -turnBT\n -getTelemetry
         
-        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.3) Publish - 제어 결과를 전달한다. (RPC_RESPONSE_TOPIC + ID)
-        note left: method key\n -getLEDValue
         end
      end
 
      group 3. MQTT - Upload Telemetry Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Publish Data - (TELEMETRY_TOPIC) 
      end
+
+     group 4. MQTT - 로드 설정에 따라 Upload Log Message (json key: remoteLogMessage)
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Publish Data - (TELEMETRY_TOPIC) 
+     end
+     
      
      == MQTT Session Established ==
    @enduml
@@ -142,14 +141,14 @@ def on_message(client, userdata, msg):
         if payload["method"] == "getLEDValue":
 
             #LED 값 서버로 전송
-            client.publish(RPC_RESPONSE_TOPIC + requestId, json.dumps({"LEDValue": 10}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"getLEDValue": 10}))
         
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
         if payload["method"] == "setLEDValue":
             params = payload["params"]
             
             #LED 값 변경 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"LEDValue": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"setLEDValue": params}))
 
         # 공장 초기화 factoryReset 장치를 공장 생산 상태로 초기화, 저장된 설정값들 모두 지워짐
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
@@ -181,12 +180,11 @@ def on_message(client, userdata, msg):
             params = payload["params"]
             
             #on/off 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBlutooth": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBT": params}))
 
         # Aircondition report getTelemetry 리포트 주기에 상관없이 명령을 받으면, 현재 aircondition을 report 함
         # 서버에서 특정값을 조회했을때 서버로 전송함
-        if payload['method'] == 'getTelemetry':
-            
+        if payload['method'] == 'getTelemetry':            
             client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data))
         return
 ```

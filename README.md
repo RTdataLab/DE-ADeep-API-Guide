@@ -9,7 +9,7 @@
 |2021-02-04| 0.3.2 | - Client Attribute 변경 사항</br>　1. lastFirmwareVersion -> firmwareVersion </br> 　2. firmwareVersion 의 값 타입 변경 Number -> String </br>　3. timeZone 추가 | 이창주 |
 |2021-02-05| 0.3.3 | - RPC 테스트 웹 페이지 추가 <br> 　MQTT-API-2.RpcCommand(서버사이드 RPC 테스트) | 이창주 |
 |2021-02-08| 0.3.4 | - RPC 테스트 웹 페이지  브라우저 설정 가이드 추가 <br> 　MQTT-API-2.RpcCommand(서버사이드 RPC 테스트) | 이창주 |
-
+|2021-02-08| 0.3.5 | - 응답 TOPIC 통일화 TELEMETRY_TOPIC </br> - 응답 Json Key 변경 <br> - Shard Attribute - remoteLogLevel 추가</br> - UploadTelemetryLogData.md 추가 | 이창주 |
 
 </br>
 
@@ -75,7 +75,7 @@
 
       == MQTT Session Established ==
 
-     group 3.2 MQTT - 'Update - ATTRIBUTE CHANGED' (Client Side - firmwareVersion, lastBootingTime)
+     group 3.2 MQTT - 'Update - ATTRIBUTE CHANGED' (Client Side - firmwareVersion, lastBootingTime, timeZone)
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.1) Publish - ATTRIBUTES_TOPIC
      end
 
@@ -92,10 +92,14 @@
        "AirDeep[AQS]" <- "AirDeep[AQS]" : Control Process
      end
 
-     group 3.5 MQTT - Upload Telemetry Data
+     group 3.5 MQTT - Upload Device Log Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Device Log Data (Publish TELEMETRY_TOPIC)
+     end
+
+     group 3.6 MQTT - Upload Telemetry Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
      end
-      
+
       == MQTT Session Established ==
     end
   @enduml
@@ -131,9 +135,11 @@
   
   </br>
 
-#### [**3.1.7 Upload Telemetry Data**](./docs/MQTT-API-3.UploadTelemetryData.md)
-   - 목적 : 디바이스는 서버와 MQTT Session 수립 후 Telemetry Data 를 서버에 전달한다.
-  
+#### [**3.1.7 Upload Device Log Data**](./docs/MQTT-API-3.UploadTelemetryLogData.md)
+   - 목적 : Shard Attribute - remoteLogLevel 에 따라 Log Data를 서버에 전달한다.
+
+#### [**3.1.8 Upload Telemetry Sensor Data**](./docs/MQTT-API-4.UploadTelemetrySensorData.md)
+   - 목적 : 디바이스는 서버와 MQTT Session 수립 후 Sensor Data 를 서버에 전달한다.
   </br>
   
 ### 3.2  서비스 연동 API
@@ -175,7 +181,8 @@
  - AQS 디바이스는 **디바이스 등록과정** 을 통해 얻어진 MQTT Host 정보로 MQTT Host 와 MQTT Session Establish 되어야 한다.
  - 제어 
    - MQTT Session 수립 후 서버가 RPC Command 를 단말에 전달하여 디바이스 제어를 할 수 있다.
-   - MQTT Session 수립 후 서버가 SHARD-ATTRIBUTE(uploadFrequency) 변경하여 디바이스 제어를 할 수 있다.
+   - MQTT Session 수립 후 서버가 SHARD-ATTRIBUTE(uploadFrequency) 변경하여 센서 데이터 업로드 주기를 설정 할 수 있다.
+   - MQTT Session 수립 후 서버가 SHARD-ATTRIBUTE(remoteLogLevel) 변경하여 단말이 서버로 업로드 하는 로그 레벨을 설정 할 수 있다.
  - 시퀀스 다이어그램
  
    ```plantuml
@@ -188,20 +195,24 @@
       "AirDeep[AQS]" <--> "AirDeep[MQTT Server]"  : Ack(Connected)
      end
      == MQTT Session Established ==
-     group 3.2 MQTT - 'Command - ATTRIBUTE CHANGED' (Server Side)
+     group 2.1 MQTT - 'Command - ATTRIBUTE CHANGED' (Server Side)
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - ATTRIBUTE_TOPIC
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - CHANGED ATTRIBUTE VALUE
        "AirDeep[AQS]" <- "AirDeep[AQS]" : on_message
      end
 
-     group 3.3 MQTT - 'Command - RPC'
+     group 2.2 MQTT - 'Command - RPC'
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Subscribe - RPC_REQUEST_TOPIC
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : Publish Data - RPC Command
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Publish ACK
        "AirDeep[AQS]" <- "AirDeep[AQS]" : on_message
      end
 
-     group 3.4 MQTT - Upload Telemetry Data
+     group 2.3 MQTT - Upload Device Log Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Device Log Data (Publish TELEMETRY_TOPIC)
+     end
+
+     group 2.4 MQTT - Upload Telemetry Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
      end
 
@@ -219,8 +230,9 @@
     | **ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** | 디바이스는 서버가 가지고 있는 디바이스의 정보를 요청한다. |
     | **ATTRIBUTES_REQUEST_TOPIC** | **v1/devices/me/attributes/request/1** | 서버는 요청 받은 디바이스의 정보를 디바이스에 전달한다. |
     | **RPC_REQUEST_TOPIC** | **v1/devices/me/rpc/request/+** | 서버는 RPC 명령어 디바이스로 전달한다.  |
-    | **RPC_RESPONSE_TOPIC** | **v1/devices/me/rpc/response/{id}** | 디바이스는 RPC 처리  응답을 전달한다. |
-    | **TELEMETRY_TOPIC** | **v1/devices/me/telemetry** | 디바이스는 서버로 센서 데이터를 전달한다. |
+    | **TELEMETRY_TOPIC**(RPC 응답) | **v1/devices/me/telemetry** | 디바이스는 서버로 센서 데이터를 전달한다. </br>　***JsonKey 로 응답을 구분한다.***|
+    | **TELEMETRY_TOPIC**(로그 전달) | **v1/devices/me/telemetry** | 디바이스는 서버로 로그 데이터를 전달한다. </br>　***JsonKey: remoteLogMessage*** |
+    | **TELEMETRY_TOPIC**(센서 값 전달) | **v1/devices/me/telemetry** | 디바이스는 서버로 센서 데이터를 전달한다. |
 </br></br>
 
 ***

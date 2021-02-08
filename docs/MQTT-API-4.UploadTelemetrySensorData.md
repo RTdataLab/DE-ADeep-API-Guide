@@ -1,7 +1,7 @@
-# MQTT API - Airdeep.UploadTelemetryData
+# MQTT API - Airdeep.UploadTelemetrySensorData
 
 ## **목적**
-  - 디바이스는 서버로부터 수신된 'uploadFrequency'(Sec) 를 기준으로 TelemetryData 를 업로드 한다.
+  - 디바이스는 서버로부터 수신된 'uploadFrequency'(Sec) 를 기준으로 Telemetry Sensor Data 를 업로드 한다.
 
 ## **선행 조건**
   - 장치 등록 
@@ -33,8 +33,7 @@ NO | TOPIC    | Publish | Subscribe | Description
 NO | TOPIC    | Send(Publish) | Recv(on_message)
 :------: | :------ | :--------- | :----------
 1  | v1/devices/me/telemetry  | O [(Sensor Telemetry)](#Sensor-Telemetry) | X }
-2  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": 5.0,"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
-3  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": 5.0,"lastBootingTime": timestamp(sec) },"shared":{"uploadFrequency": 1} }
+2  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": "5.0", "lastBootingTime": timestamp(sec), timeZone: "Asia/Seoul" },"shared":{"uploadFrequency": 1, "remoteLogLevel": 1} }
 </br>
 
 ## Sensor Telemetry
@@ -81,7 +80,7 @@ report_rsn| Report Reason | 전송 이유(주기적 수집, 요청에 의한 One
      == MQTT Session Established ==
      group 2. MQTT - 서버의 uploadFrequency Attribute 값 설정 
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shard) 값 요청)
-     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC( Receive Attribute (Client(firmwareVersion, lastBootingTime), Shard(uploadFrequency)) )
+     "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC( Receive Attribute (Client(firmwareVersion, lastBootingTime, timeZone), Shard(uploadFrequency, remoteLogLevel)) )
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3 on_message
      note left: uploadFrequency 설정
      end

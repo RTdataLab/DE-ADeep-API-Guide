@@ -144,16 +144,15 @@ def on_message(client, userdata, msg):
         # LED 밝기 조절 setLEDValue, getLEDValue (0~100) LED on 될때의 전체 밝기의 비율
         # 서버에서 특정값을 조회했을때 서버로 전송함
         if payload["method"] == "getLEDValue":
-
             #LED 값 서버로 전송
-            client.publish(RPC_RESPONSE_TOPIC+requestId, json.dumps({"LEDValue": 10}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"getLEDValue": 10}))
         
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
         if payload["method"] == "setLEDValue":
             params = payload["params"]
             
             #LED 값 변경 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"LEDValue": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"setLEDValue": params}))
 
         # 공장 초기화 factoryReset 장치를 공장 생산 상태로 초기화, 저장된 설정값들 모두 지워짐
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
@@ -185,7 +184,7 @@ def on_message(client, userdata, msg):
             params = payload["params"]
             
             #on/off 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBlutooth": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBT": params}))
 
         # Aircondition report getTelemetry 리포트 주기에 상관없이 명령을 받으면, 현재 aircondition을 report 함
         # 서버에서 특정값을 조회했을때 서버로 전송함
@@ -200,6 +199,18 @@ def on_message(client, userdata, msg):
                     'report_reason': 'Report Reason'
                 }})
             )
+
+        # setRemoteLogLevel : 서버는 단말에 debug 수준을 설정한다. 아래 값을 or 로 하여 전달
+        # remoteLogMessage : 단말은 설정된 debug 수준에 따라 로그를 'setRemoteLogLevel' 키로 하여 서버로 전달한다.
+        # DEBUG_NOTHING = 0
+        # DEBUG_NORMAL = 1 << 0,
+        # DEBUG_INFO =  1 << 1,
+        # DEBUG_DEBUG = 1 << 2,
+        # DEBUG_ERROR = 1 << 3, 
+        # DEBUG_ALL = DEBUG_NORMAL | DEBUG_INFO | DEBUG_DEBUG | DEBUG_ERROR
+        if payload["method"] == "setRemoteLogLevel":
+            params = payload["params"]
+            client.publish(TELEMETRY_TOPIC, json.dumps({"setRemoteLogLevel": params}))
 
         return
 

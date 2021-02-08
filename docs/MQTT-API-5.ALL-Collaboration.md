@@ -54,7 +54,7 @@ sensor_data = {
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : subscribe(ATTRIBUTES_TOPIC)
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : subscribe(RPC_REQUEST_TOPIC) 
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(ATTRIBUTES_TOPIC, {'firmwareVersion': 1.0, 'lastBootingTime':0})
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(ATTRIBUTES_REQUEST_TOPIC, {"clientKeys": "firmwareVersion,lastBootingTime","sharedKeys": "uploadFrequency"})
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(ATTRIBUTES_REQUEST_TOPIC, {"clientKeys": "firmwareVersion,lastBootingTime, timeZone","sharedKeys": "uploadFrequency, remoteLogLevel"})
      end
 
      group 3. MQTT - on_message
@@ -63,9 +63,9 @@ sensor_data = {
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : publish(msg.topic=ATTRIBUTES_RESPONSE_TOPIC, msg.payload)
        "AirDeep[AQS]" <- "AirDeep[AQS]" : [if msg.topic == ATTRIBUTES_RESPONSE_TOPIC && payload["shared"]["uploadFrequency"]  > 0] Update local uploadFrequency 
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : publish(msg.topic=RPC_REQUEST_TOPIC", msg.payload)
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "getLEDValue"] publish(RPC_RESPONSE_TOPIC+${id}, {"LEDValue": 10})
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "getLEDValue"] publish(RPC_RESPONSE_TOPIC+${id}, {"getLEDValue": 10})
        "AirDeep[AQS]" <- "AirDeep[AQS]" :  [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "setLEDValue"] Change Device LED with  payload["params"]
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(TELEMETRY_TOPIC, {"LEDValue": 10})
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(TELEMETRY_TOPIC, {"setLEDValue": 10})
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "factoryReset"] publish(TELEMETRY_TOPIC, {"factoryReset": "true"})
        "AirDeep[AQS]" <- "AirDeep[AQS]" : refactorDevice (mqtt connection will be terminated)
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "reset"] publish(TELEMETRY_TOPIC, {"reset": "true"})
@@ -73,7 +73,7 @@ sensor_data = {
        "AirDeep[AQS]" <- "AirDeep[AQS]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "notify"] notify device 
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" :  publish(TELEMETRY_TOPIC, {"notify": payload["params"])
        "AirDeep[AQS]" <- "AirDeep[AQS]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "turnBT"] set bluetooth on/off 
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" :  publish(TELEMETRY_TOPIC, {"turnBlutooth": payload["params"])
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" :  publish(TELEMETRY_TOPIC, {"turnBT": payload["params"])
        "AirDeep[AQS]" <- "AirDeep[AQS]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "checkUpdate"] TBD
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" :  [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "getTelemetry"] publish(TELEMETRY_TOPIC, {"getTelemetry": {sensor_data})
      end
@@ -191,6 +191,7 @@ msg.topic 및 msg.payload의 method 및 params 값에 따라서 디바이스에�
    BT 기능 | **v1/devices/me/rpc/request/${id}** | **str**| **b'{"method":"turnBT","params":true}'** | 
    Check update| **v1/devices/me/rpc/request/${id}** | **str**| **b'{"method":"checkUpdate","params":"{}"}'** | 
    Aircondition report | **v1/devices/me/rpc/request/${id}** | **str**| **b'{"method":"getTelemetry","params":"{}"}'** | 
+   Remote Log Level 설정 | **v1/devices/me/rpc/request/${id}** | **str**| **b'{"method":"setRemoteLogLevel","params":"{}"}'** | 
 
 ## **Python mqtt on_message example**
 ```python
@@ -231,14 +232,14 @@ def on_message(client, userdata, msg):
         if payload["method"] == "getLEDValue":
 
             #LED 값 서버로 전송
-            client.publish(RPC_RESPONSE_TOPIC+requestId, json.dumps({"LEDValue": 10}))
+            client.publish(RPC_RESPONSE_TOPIC+requestId, json.dumps({"getLEDValue": 10}))
         
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
         if payload["method"] == "setLEDValue":
             params = payload["params"]
             
             #LED 값 변경 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"LEDValue": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"setLEDValue": params}))
 
         # 공장 초기화 factoryReset 장치를 공장 생산 상태로 초기화, 저장된 설정값들 모두 지워짐
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
@@ -270,7 +271,7 @@ def on_message(client, userdata, msg):
             params = payload["params"]
             
             #on/off 후 서버로 전송
-            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBlutooth": params}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"turnBT": params}))
 
         # Aircondition report getTelemetry 리포트 주기에 상관없이 명령을 받으면, 현재 aircondition을 report 함
         # 서버에서 특정값을 조회했을때 서버로 전송함
@@ -285,6 +286,5 @@ def on_message(client, userdata, msg):
                     'report_reason': 'Report Reason'
                 }})
             )
-
         return
   ```
