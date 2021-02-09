@@ -39,14 +39,14 @@ NO | TOPIC    | Send(Publish) | Recv(on_message)
 ## Sensor Telemetry
 ```json
 {
-    'ts' : 0,
-    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp()       1000,
-    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp() * 000,
-    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp()       1000,
-    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().imestamp     () *     1000,
-    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now()     timestamp    () * 1000,
-    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().imestamp()      *     1000,
-    'report_rsn': 'Report Reason'
+    "ts" : 0,
+    "temp": 0, "temp_max": 0,"temp_unt":"C", "temp_ts" : datetime.now().timestamp(),
+    "hmd": 0, "hmd_max": 0, "hmd_unt": "%","hmd_ts" : datetime.now().timestamp(),
+    "co2": 0, "co2_max": 0, "co2_unt": "ppm","co2_ts" : datetime.now().timestamp(),
+    "pm10": 0, "pm10_max": 0, "pm10_unt": "µg/m3", "pm10_ts" : datetime.now().imestamp(),
+    "pm2.5": 0, "pm2.5_max": 0, "pm2.5_unt": "µg/m3", "pm2.5_ts" : datetime.now().timestamp(),
+    "tvoc": 0, "tvoc_max": 0, "tvoc_unt": "mg/m3","tvoc_ts" : datetime.now().imestamp(),
+    "report_rsn": "Report Reason"
 }
 ```
 
@@ -64,7 +64,7 @@ report_rsn| Report Reason | 전송 이유(주기적 수집, 요청에 의한 One
 
 ## **시퀀스 다이어그램**
 
-1. TelemetryData 업로드
+1. Telemetry Sensor Data 업로드
     - 디바이스 업데이트 후 펌웨어 값 전달
    ```plantuml
    @startuml
@@ -137,12 +137,12 @@ def on_message(client, userdata, msg):
 # Sensor data
 sensor_data = {
     'ts' : 0,
-    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp() * 1000,
-    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp() * 1000,
-    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp() * 1000,
-    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().timestamp() * 1000,
-    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now().timestamp() * 1000,
-    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp() * 1000,
+    'temp': 0, 'temp_max': 0,'temp_unt':'C', 'temp_ts' : datetime.now().timestamp(),
+    'hmd': 0, 'hmd_max': 0, 'hmd_unt': "%",'hmd_ts' : datetime.now().timestamp(),
+    'co2': 0, 'co2_max': 0, 'co2_unt': "ppm",'co2_ts' : datetime.now().timestamp(),
+    'pm10': 0, 'pm10_max': 0, 'pm10_unt': "µg/m3", 'pm10_ts' : datetime.now().timestamp(),
+    'pm2.5': 0, 'pm2.5_max': 0, 'pm2.5_unt': "µg/m3", 'pm2.5_ts' : datetime.now().timestamp(),
+    'tvoc': 0, 'tvoc_max': 0, 'tvoc_unt': "mg/m3",'tvoc_ts' : datetime.now().timestamp(),
     'report_rsn': 'Report Reason'
 }
 

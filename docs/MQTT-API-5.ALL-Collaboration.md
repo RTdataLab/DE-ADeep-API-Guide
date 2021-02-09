@@ -22,7 +22,6 @@ ATTRIBUTES_REQUEST_TOPIC = "v1/devices/me/attributes/request/1"
 ATTRIBUTES_RESPONSE_TOPIC = ATTRIBUTES_REQUEST_TOPIC.replace("request", "response")
 TELEMETRY_TOPIC ="v1/devices/me/telemetry"
 RPC_REQUEST_TOPIC ="v1/devices/me/rpc/request/+"
-RPC_RESPONSE_TOPIC ="v1/devices/me/rpc/response/"
 ```
 
 ## Sensor data
@@ -63,7 +62,7 @@ sensor_data = {
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : publish(msg.topic=ATTRIBUTES_RESPONSE_TOPIC, msg.payload)
        "AirDeep[AQS]" <- "AirDeep[AQS]" : [if msg.topic == ATTRIBUTES_RESPONSE_TOPIC && payload["shared"]["uploadFrequency"]  > 0] Update local uploadFrequency 
        "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : publish(msg.topic=RPC_REQUEST_TOPIC", msg.payload)
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "getLEDValue"] publish(RPC_RESPONSE_TOPIC+${id}, {"getLEDValue": 10})
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "getLEDValue"] publish(TELEMETRY_TOPIC, {"getLEDValue": 10})
        "AirDeep[AQS]" <- "AirDeep[AQS]" :  [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "setLEDValue"] Change Device LED with  payload["params"]
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : publish(TELEMETRY_TOPIC, {"setLEDValue": 10})
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : [if msg.topic.startswith("v1/devices/me/rpc/request/") && payload["method"] == "factoryReset"] publish(TELEMETRY_TOPIC, {"factoryReset": "true"})
@@ -232,7 +231,7 @@ def on_message(client, userdata, msg):
         if payload["method"] == "getLEDValue":
 
             #LED 값 서버로 전송
-            client.publish(RPC_RESPONSE_TOPIC+requestId, json.dumps({"getLEDValue": 10}))
+            client.publish(TELEMETRY_TOPIC, json.dumps({"getLEDValue": 10}))
         
         # 서버에서 디바이스에 대한 명령어를 내렸을때는 client에서 작업후 변경 정보 서버로 전송함
         if payload["method"] == "setLEDValue":

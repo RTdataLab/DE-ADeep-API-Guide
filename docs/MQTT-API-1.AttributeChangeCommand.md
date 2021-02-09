@@ -77,12 +77,12 @@ remoteLogLevel| 로그 레벨 | DEBUG_NOTHING = 0</br> DEBUG_NORMAL = 1 </br> DE
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.1) Publish - ATTRIBUTES_TOPIC
      end
 
-     group 4. MQTT - Upload Device Log Data
+     group 4. MQTT - Upload Telemetry Device Log Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 3.1) Upload Device Log Data (Publish TELEMETRY_TOPIC)
      end
 
-     group 5. MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 4.1) Publish Data - (TELEMETRY_TOPIC) 
+     group 5. MQTT - Upload Telemetry Sensor Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 4.1) Upload Sensor Data - (Publish TELEMETRY_TOPIC) 
      end
      
      == MQTT Session Established ==
@@ -91,7 +91,7 @@ remoteLogLevel| 로그 레벨 | DEBUG_NOTHING = 0</br> DEBUG_NORMAL = 1 </br> DE
 </br></br>
 
 
-2. [Server-Side] remoteLogLevel - Upload Log Level 변경
+2. [Server-Side] remoteLogLevel - Remote Log Level 변경
     - 서버에서 Log Level 을 변경하면, 디바이스는 전달받아 처리한다.
 
    ```plantuml

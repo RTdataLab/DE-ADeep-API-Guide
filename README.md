@@ -9,7 +9,7 @@
 |2021-02-04| 0.3.2 | - Client Attribute 변경 사항</br>　1. lastFirmwareVersion -> firmwareVersion </br> 　2. firmwareVersion 의 값 타입 변경 Number -> String </br>　3. timeZone 추가 | 이창주 |
 |2021-02-05| 0.3.3 | - RPC 테스트 웹 페이지 추가 <br> 　MQTT-API-2.RpcCommand(서버사이드 RPC 테스트) | 이창주 |
 |2021-02-08| 0.3.4 | - RPC 테스트 웹 페이지  브라우저 설정 가이드 추가 <br> 　MQTT-API-2.RpcCommand(서버사이드 RPC 테스트) | 이창주 |
-|2021-02-08| 0.3.5 | - 응답 TOPIC 통일화 TELEMETRY_TOPIC </br> - 응답 Json Key 변경 <br> - Shard Attribute - remoteLogLevel 추가</br> - UploadTelemetryLogData.md 추가 | 이창주 |
+|2021-02-09| 0.3.5 | - 응답 TOPIC 통일화 TELEMETRY_TOPIC </br> - 응답 Json Key 변경 <br> - Shard Attribute - remoteLogLevel 추가</br> - UploadTelemetryLogData.md 추가 | 유수던</br>이창주 |
 
 </br>
 
@@ -92,11 +92,11 @@
        "AirDeep[AQS]" <- "AirDeep[AQS]" : Control Process
      end
 
-     group 3.5 MQTT - Upload Device Log Data
+     group 3.5 MQTT - Upload Telemetry Device Log Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Device Log Data (Publish TELEMETRY_TOPIC)
      end
 
-     group 3.6 MQTT - Upload Telemetry Data
+     group 3.6 MQTT - Upload Telemetry Sensor Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
      end
 
@@ -135,8 +135,8 @@
   
   </br>
 
-#### [**3.1.7 Upload Device Log Data**](./docs/MQTT-API-3.UploadTelemetryLogData.md)
-   - 목적 : Shard Attribute - remoteLogLevel 에 따라 Log Data를 서버에 전달한다.
+#### [**3.1.7 Upload Telemetry Device Log Data**](./docs/MQTT-API-3.UploadTelemetryLogData.md)
+   - 목적 : 디바이스는 서버와 MQTT Session 수립 후 'Shard Attribute - remoteLogLevel' 에 따라 Log Data를 서버에 전달한다.
 
 #### [**3.1.8 Upload Telemetry Sensor Data**](./docs/MQTT-API-4.UploadTelemetrySensorData.md)
    - 목적 : 디바이스는 서버와 MQTT Session 수립 후 Sensor Data 를 서버에 전달한다.
@@ -208,12 +208,12 @@
        "AirDeep[AQS]" <- "AirDeep[AQS]" : on_message
      end
 
-     group 2.3 MQTT - Upload Device Log Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Device Log Data (Publish TELEMETRY_TOPIC)
+     group 2.3 MQTT - Upload Telemetry Device Log Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Device Log Data (Publish TELEMETRY_TOPIC)
      end
 
-     group 2.4 MQTT - Upload Telemetry Data
-       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Data (Publish TELEMETRY_TOPIC)
+     group 2.4 MQTT - Upload Telemetry Sensor Data
+       "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : Upload Telemetry Sensor Data (Publish TELEMETRY_TOPIC)
      end
 
      == MQTT Session Established ==
@@ -263,7 +263,7 @@
   ```
 </br>
 
-# *Appendix B. Sample 소스(업데이트 예정)*
+# *Appendix B. Sample 소스*
 - [**Python Sample 소스**](#python-sample-소스)
   - [**필요한 lib**](#필요한-lib)
   - [**소스 파일**](#소스-파일)

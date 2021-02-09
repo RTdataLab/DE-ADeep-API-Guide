@@ -32,19 +32,20 @@ NO | TOPIC    | Publish | Subscribe | Description
 ## **Payload**
 NO | TOPIC    | Send(Publish) | Recv(on_message)
 :------: | :------ | :--------- | :----------
-1  | v1/devices/me/telemetry  | O [(Sensor Telemetry)](#Log-Telemetry) | X }
+1  | v1/devices/me/telemetry  | O [(Log Telemetry)](#Log-Telemetry) | X
 2  | v1/devices/me/attributes/response/1  | X | { "firmwareVersion": "5.0", "lastBootingTime": timestamp(sec), timeZone: "Asia/Seoul" },"shared":{"uploadFrequency": 1, "remoteLogLevel": 1} }
 </br>
 
 ## Log Telemetry
 ```json
-{
-    'ts' : 'timestamp',
-    'logLevel' : 1,
-    'logString': 'xxxx'
+{ 
+  "remoteLogMessage" : {
+    "ts" : timestamp,
+    "logLevel" : 1,
+    "logString": "xxxx"
+  }
 }
 ```
-
 
 ## **Payload 설명**
 Key        |  Value | Description 
@@ -72,7 +73,7 @@ logString | String | 로그 스트링
      end
 
      == MQTT Session Established ==
-     group 2. MQTT - 서버의 uploadFrequency Attribute 값 설정 
+     group 2. MQTT - Shared Attribute 값 수신 후 적용
      "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 1.1) Publish - ATTRIBUTES_REQUEST_TOPIC(서버에 저장된 Attribute(Client, Shard) 값 요청)
      "AirDeep[AQS]" <- "AirDeep[MQTT Server]" : 1.2) ATTRIBUTES_RESPONSE_TOPIC( Receive Attribute (Client(firmwareVersion, lastBootingTime, timeZone), Shard(uploadFrequency, remoteLogLevel)) )
      "AirDeep[AQS]" <- "AirDeep[AQS]" : 1.3 on_message
@@ -81,6 +82,7 @@ logString | String | 로그 스트링
 
      group 3. MQTT - Upload Telemetry Log Data
        "AirDeep[AQS]" -> "AirDeep[MQTT Server]" : 2.1) Publish Log Data - (TELEMETRY_TOPIC) 
+       note left: 설정된 RemoteLogLevel에 따라 Log 전달
      end
      
      == MQTT Session Established ==
@@ -144,7 +146,7 @@ try:
         log_data['logLevel'] = 1
         log_data['logString'] = "Hello Log World"
         
-        client.publish(TELEMETRY_TOPIC, json.dumps({"remoteLog": log_data}))
+        client.publish(TELEMETRY_TOPIC, json.dumps({"remoteLogMessage": log_data}))
 
   ```
 
