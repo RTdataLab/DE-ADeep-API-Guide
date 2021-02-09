@@ -214,6 +214,10 @@ def on_message(client, userdata, msg):
 
         return
 
+# client is disconnected when subscribing or publishing data due to wrong access token or client side disconnection
+def on_disconnect(client, userdata, rc, *extra_params):
+    logging.debug('Disconnected with result code ' + str(rc))
+
 # Sensor data
 sensor_data = {
     'ts' : 0,
@@ -238,9 +242,16 @@ client.on_connect = on_connect
 # Setting callback function on mqtt message update
 client.on_message = on_message
 
+#Setting callback function on mqtt disconnect
+client.on_disconnect = on_disconnect
+
 # Connect to mobideep server using MQTT port and 60 seconds keepalive interval
 logging.debug("Connecting to  "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" using mqtt protocal")
-client.connect(AIRDEEP_MQTT_HOST, AIRDEEP_MQTT_PORT)
+
+try:
+    client.connect(AIRDEEP_MQTT_HOST, AIRDEEP_MQTT_PORT)
+except Exception:
+    logging.debug("Check host and port information  "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT))
 
 client.loop_start()
 
@@ -269,13 +280,12 @@ try:
 
         # Sending humidity and temperature data to ThingsBoard
         client.publish(TELEMETRY_TOPIC, json.dumps(sensor_data), 1)
-        logging.debug("Uploaded telemetry to   "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" at "+str(ts)+" using mqtt protocal with payload \n" + json.dumps(sensor_data))
+        #logging.debug("Uploaded telemetry to   "+AIRDEEP_MQTT_HOST+":"+ str(AIRDEEP_MQTT_PORT)+" at "+str(ts)+" using mqtt protocal with payload \n" + json.dumps(sensor_data))
 
         time.sleep(uploadFrequency) 
 
 except KeyboardInterrupt:
-    #GPIO.cleanup() 
-    pass
+    client.disconnect()
+    logging.debug("Disconnected due to client  side")
 
 client.loop_stop()
-client.disconnect()
