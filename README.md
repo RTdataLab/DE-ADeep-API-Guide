@@ -263,7 +263,32 @@
   ```
 </br>
 
-# *Appendix B. Sample 소스*
+# *Appendix B. MQTT STATUS CODE 정의*
+  | RESPONSE CODE | 설명 |
+  |:-----------------|:-----|
+  |0 (OK)| 정상적으로 처리 |
+  |1 (Connection Refused: Unacceptable protocol version)| 프로토콜 에러( mqtt version : mqttv31, mqttv311에 따른 broker와 client간 version 틀렸을때 오류) |
+  |2 (Connection Refused: Identifier rejected)| 인증실패 |
+  |3 (Connection Refused: Server Unavailable)| connection 후 서버다운되어 연동실패 |
+  |4 (Connection Refused: Bad username or password)| mqtt id/pwd 틀림 |
+  |5 (Connection Refused: Authorization error)|access token 틀림(connection은 되나 pub/sub 시 오류코드발생|
+  |6 (Connection lost or bad)| 요청 후 응답 Timeout 이 발생한 경우|
+  
+  <br>
+
+
+* A1.1 성공 응답 Body
+  ```
+  요청에 대하여 성공인 경우는 mqtt response code (rc)를 0(성공), topic 및 payload 값으로 추가작업한다.
+  ```
+
+* 실패 응답 Body
+  ```
+  실패인 경우 mqtt response code (rc) 0외 값으로 반환된다.
+  ```
+</br>
+
+# *Appendix C. Sample 소스*
 - [**Python Sample 소스**](#python-sample-소스)
   - [**필요한 lib**](#필요한-lib)
   - [**소스 파일**](#소스-파일)
